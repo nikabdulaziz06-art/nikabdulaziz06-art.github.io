@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123c35">
+<title>Healthy Run — Misi Hidup Sihat</title>
+<style>
+:root{--ink:#173b35;--mint:#dff7e9;--lime:#c8f36a;--coral:#ff806e;--cream:#fff9e9}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(145deg,#e7fff1,#fff5df);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);min-height:100vh}
+.wrap{max-width:1050px;margin:auto;padding:22px 16px 36px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.brand{font-weight:1000;font-size:clamp(22px,4vw,34px);letter-spacing:-1px}.brand span{color:#e56c50}
+.pill{background:#fff;border:2px solid #d4eadb;border-radius:99px;padding:8px 13px;font-weight:800;font-size:13px}
+.panel{background:#fff;border:2px solid #d9ebdd;border-radius:24px;padding:15px;box-shadow:0 10px 30px #285c3914}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.stat{background:#f2fbf3;border-radius:15px;padding:9px 12px}.stat small{display:block;color:#628078;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.6px}.stat strong{font-size:20px}
+.energyTrack{height:9px;background:#dcebe0;border-radius:99px;overflow:hidden;margin-top:4px}.energyFill{height:100%;width:60%;background:linear-gradient(90deg,#8bdc79,#d1e95c);border-radius:99px;transition:width .2s}
+.stage{position:relative;overflow:hidden;border-radius:20px;background:#bdeed5;border:2px solid #cce7d2}
+canvas{display:block;width:100%;height:auto;touch-action:manipulation}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;background:#0b302d9c}
+.dialog{width:min(440px,100%);background:#fffdf3;border:3px solid #fff;border-radius:22px;padding:22px;text-align:center;box-shadow:0 16px 45px #123c3540}
+.dialog h1{margin:0 0 8px;font-size:clamp(24px,5vw,34px)}.dialog p{line-height:1.5;color:#526b63}
+button{border:0;border-radius:14px;background:var(--ink);color:white;font-weight:900;padding:12px 18px;font-size:15px;cursor:pointer;box-shadow:0 4px 0 #0b2925;transition:transform .1s}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 #0b2925}
+button.secondary{background:#eaf6e9;color:var(--ink);box-shadow:0 4px 0 #c8dfca}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}
+.answers button{background:#eaf6e9;color:var(--ink);box-shadow:0 4px 0 #c8dfca;text-align:left}
+.answers button:hover{background:#d7f3dd}.answers button:disabled{opacity:.55;cursor:default}
+.feedback{font-weight:900;min-height:26px;margin:12px 0 0}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:13px}
+.hint{font-size:13px;color:#567269;line-height:1.45}.actions{display:flex;gap:8px;flex-wrap:wrap}
+footer{text-align:center;color:#668178;font-size:12px;margin-top:15px}
+@media(max-width:600px){.hud{grid-template-columns:repeat(2,1fr)}.answers{grid-template-columns:1fr}.wrap{padding:13px 10px 25px}.dialog{padding:17px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand">🍓 HEALTHY <span>RUN!</span></div><div class="pill">SDG 3 · Kesihatan Baik & Kesejahteraan</div></header>
+<div class="hud">
+ <div class="stat"><small>Skor</small><strong id="score">0</strong></div>
+ <div class="stat"><small>Tenaga ⚡</small><strong id="energyText">60%</strong><div class="energyTrack"><div class="energyFill" id="energyFill"></div></div></div>
+ <div class="stat"><small>Nyawa ❤️</small><strong id="lives">❤️❤️❤️</strong></div>
+ <div class="stat"><small>Jarak</small><strong id="distance">0 m</strong></div>
+</div>
+<div class="panel">
+ <div class="stage">
+  <canvas id="game" width="960" height="430" aria-label="Permainan pelari Healthy Run"></canvas>
+  <div class="overlay" id="startOverlay">
+   <div class="dialog">
+    <div style="font-size:54px">🥦 🏃‍♀️ 🍓</div>
+    <h1>Jom hidup sihat!</h1>
+    <p>Bantu Brokoli berlari, elak halangan dan kumpul buah. Jawab kuiz untuk mengecas tenaga sebelum melompat!</p>
+    <button id="startBtn">MULA BERMAIN ▶</button>
+    <p style="font-size:12px;margin-bottom:0">Papan kekunci: SPACE / ↑ untuk lompat · Telefon: sentuh butang LOMPAT</p>
+   </div>
+  </div>
+  <div class="overlay" id="quizOverlay" style="display:none">
+   <div class="dialog">
+    <div style="font-size:36px">🧠 ⚡</div>
+    <div class="pill" style="display:inline-block">CABARAN TENAGA</div>
+    <h1 style="font-size:25px" id="question">Soalan</h1>
+    <div class="answers" id="answers"></div>
+    <div class="feedback" id="feedback"></div>
+   </div>
+  </div>
+  <div class="overlay" id="endOverlay" style="display:none">
+   <div class="dialog">
+    <div style="font-size:52px" id="endEmoji">🏁</div>
+    <h1 id="endTitle">Permainan tamat!</h1>
+    <p id="endText"></p>
+    <button id="againBtn">MAIN LAGI ↻</button>
+   </div>
+  </div>
+ </div>
+ <div class="controls">
+  <div class="hint"><b>Tip:</b> Jawapan betul = +30 tenaga. Lompat menggunakan 20 tenaga. Buah memberi bonus skor dan tenaga!</div>
+  <div class="actions"><button class="secondary" id="quizBtn">JAWAB KUIZ +⚡</button><button id="jumpBtn">LOMPAT ⬆</button></div>
+ </div>
+</div>
+<footer>Permainan pendidikan SDG 3 · Pemakanan sihat dan gaya hidup aktif</footer>
+</div>
+<script>
+(() => {
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);
+const questions=[
+ {q:"Apakah maksud pinggan sihat suku-suku-separuh?",a:["½ sayur/buah, ¼ bijirin, ¼ protein","Semua nasi","½ makanan manis","Hanya protein"],c:0,why:"Pinggan sihat menggalakkan separuh pinggan sayur dan buah, serta suku bijirin dan suku sumber protein."},
+ {q:"Minuman apakah pilihan terbaik untuk menghilangkan dahaga?",a:["Air kosong","Minuman berkarbonat","Sirap pekat","Minuman tenaga"],c:0,why:"Air kosong membantu tubuh kekal terhidrat."},
+ {q:"Yang manakah contoh sumber protein?",a:["Ikan dan telur","Gula-gula","Air berperisa","Ais krim"],c:0,why:"Ikan dan telur ialah antara sumber protein."},
+ {q:"Mengapa kita perlu makan buah dan sayur?",a:["Membekalkan serat, vitamin dan mineral","Supaya tidak perlu minum air","Menggantikan semua makanan","Untuk menambah gula"],c:0,why:"Buah dan sayur membekalkan serat, vitamin dan mineral yang penting."},
+ {q:"Aktiviti manakah membantu menjadikan badan lebih aktif?",a:["Berjalan pantas","Duduk sepanjang hari","Bermain telefon tanpa rehat","Tidur ketika kelas"],c:0,why:"Berjalan pantas ialah aktiviti fizikal yang menggerakkan badan."},
+ {q:"Apakah amalan yang baik sebelum makan?",a:["Membasuh tangan","Tidak mencuci tangan","Berkongsi sudu kotor","Makan dengan tergesa-gesa"],c:0,why:"Membasuh tangan membantu mengurangkan penyebaran kuman."},
+ {q:"Apakah pilihan snek yang lebih berkhasiat?",a:["Buah segar","Gula-gula sahaja","Kerepek setiap masa","Minuman manis"],c:0,why:"Buah segar ialah pilihan snek yang membekalkan serat dan vitamin."},
+ {q:"Mengapa tidur yang cukup penting?",a:["Membantu tubuh berehat dan pulih","Supaya tidak perlu bersenam","Menggantikan makanan","Menjadikan kita sentiasa lapar"],c:0,why:"Tidur membantu badan dan minda berehat serta pulih."},
+ {q:"Apakah contoh gaya hidup aktif?",a:["Bermain bola atau berbasikal","Duduk terlalu lama","Mengelak semua pergerakan","Menonton TV sepanjang hari"],c:0,why:"Bermain bola dan berbasikal ialah contoh aktiviti fizikal."},
+ {q:"Jika memilih makanan, apakah amalan yang lebih baik?",a:["Pelbagaikan makanan dan kawal saiz hidangan","Makan satu jenis sahaja","Pilih makanan paling manis","Langkau semua waktu makan"],c:0,why:"Pemakanan seimbang melibatkan kepelbagaian makanan dan saiz hidangan yang sesuai."},
+ {q:"Apakah kesan terlalu banyak minuman bergula?",a:["Pengambilan gula berlebihan","Menjadikan air kosong tidak perlu","Menggantikan sayur","Membina otot secara automatik"],c:0,why:"Kerap mengambil minuman bergula boleh meningkatkan pengambilan gula harian."},
+ {q:"Apakah cara mudah untuk kurangkan duduk terlalu lama?",a:["Bangun dan bergerak secara berkala","Terus duduk berjam-jam","Tidak bergerak langsung","Tidur di meja"],c:0,why:"Berehat seketika untuk berdiri dan bergerak membantu memecahkan tempoh duduk yang panjang."}
+];
+let running=false,paused=false,score=0,energy=60,lives=3,distance=0,frame=0,speed=5,obstacles=[],fruits=[],quizIndex=0,quizTimer=0,quizActive=false;
+const ground=350,player={x:145,y:ground-62,w:58,h:62,vy:0,onGround:true};
+function hud(){ $('score').textContent=score; $('energyText').textContent=energy+'%';$('energyFill').style.width=energy+'%';$('lives').textContent='❤️'.repeat(lives)+'🖤'.repeat(3-lives);$('distance').textContent=Math.floor(distance/10)+' m';}
+function drawCloud(x,y,s=1){ctx.fillStyle="#ffffffb9";ctx.beginPath();ctx.arc(x,y,18*s,0,Math.PI*2);ctx.arc(x+22*s,y-9*s,23*s,0,Math.PI*2);ctx.arc(x+47*s,y,17*s,0,Math.PI*2);ctx.fill()}
+function draw(){
+ ctx.clearRect(0,0,960,430);
+ let sky=ctx.createLinearGradient(0,0,0,430);sky.addColorStop(0,'#9ce4d0');sky.addColorStop(1,'#e7f8c9');ctx.fillStyle=sky;ctx.fillRect(0,0,960,430);
+ drawCloud(130-(frame*.25%1100),75,.9);drawCloud(570-(frame*.18%1100),115,.7);drawCloud(870-(frame*.2%1100),55,.8);
+ // hills and trees
+ ctx.fillStyle='#91d49c';ctx.beginPath();ctx.moveTo(0,280);ctx.quadraticCurveTo(180,180,360,280);ctx.quadraticCurveTo(580,175,770,275);ctx.quadraticCurveTo(870,220,960,260);ctx.lineTo(960,350);ctx.lineTo(0,350);ctx.fill();
+ for(let i=0;i<8;i++){let x=((i*155-frame*.65)%1150+1150)%1150-100;ctx.fillStyle='#4eaa78';ctx.beginPath();ctx.arc(x,275,32,0,Math.PI*2);ctx.fill();ctx.fillRect(x-5,275,10,45)}
+ ctx.fillStyle='#78c77e';ctx.fillRect(0,ground,960,80);ctx.fillStyle='#4d9b62';ctx.fillRect(0,ground,960,7);
+ for(let i=0;i<18;i++){let x=((i*75-frame*1.8)%1000+1000)%1000;ctx.fillStyle='#d5ef9a';ctx.fillRect(x,ground+28,23,4)}
+ // fruits
+ fruits.forEach(f=>{ctx.font='30px sans-serif';ctx.fillText(f.emoji,f.x,f.y)});
+ // obstacles
+ obstacles.forEach(o=>{ctx.font='48px sans-serif';ctx.fillText(o.emoji,o.x,ground+2)});
+ // runner shadow
+ ctx.fillStyle='#367b5b55';ctx.beginPath();ctx.ellipse(player.x+28,ground+4,32,7,0,0,Math.PI*2);ctx.fill();
+ // cute broccoli runner
+ ctx.font='54px sans-serif';ctx.fillText('🥦',player.x,player.y+53);
+ ctx.font='22px sans-serif';ctx.fillText('👟',player.x+23,player.y+61);
+ // running sparkles
+ if(running && frame%12<6){ctx.fillStyle='#fff4a8';ctx.beginPath();ctx.arc(player.x-10,player.y+48,4,0,7);ctx.fill()}
+}
+function spawn(){if(frame%88===0)obstacles.push({x:1000,emoji:['🪨','📦','🌵'][Math.floor(Math.random()*3)],w:42});if(frame%115===45)fruits.push({x:1000,y:ground-45-Math.random()*70,emoji:['🍎','🍌','🍓','🥕'][Math.floor(Math.random()*4)],w:28})}
+function overlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+function jump(){if(!running||quizActive)return;if(player.onGround){if(energy<20){showQuiz();return}energy-=20;player.vy=-14;player.onGround=false;hud()}}
+function showQuiz(){
+ if(!running||quizActive)return;quizActive=true;paused=true;
+ const q=questions[quizIndex%questions.length];quizIndex++;
+ $('question').textContent=q.q;$('answers').innerHTML='';$('feedback').textContent='';
+ // shuffle so the correct answer is not always "A"
+ const order=q.a.map((_,i)=>i).sort(()=>Math.random()-.5);
+ order.forEach((i,k)=>{let b=document.createElement('button');b.textContent=String.fromCharCode(65+k)+'. '+q.a[i];b.onclick=()=>answerQuiz(i,q);$('answers').appendChild(b)});
+ $('quizOverlay').style.display='flex';
+}
+function answerQuiz(i,q){
+ [...$('answers').children].forEach(b=>b.disabled=true);
+ const ok=i===q.c;
+ if(ok){energy=Math.min(100,energy+30);score+=50;$('feedback').textContent='Betul! +30 tenaga ⚡ '+q.why;$('feedback').style.color='#23844d'}
+ else{energy=Math.max(0,energy-10);$('feedback').textContent='Belum tepat. '+q.why;$('feedback').style.color='#c45443'}
+ hud();setTimeout(()=>{$('quizOverlay').style.display='none';quizActive=false;paused=false;},2200);
+}
+function end(){running=false;$('endOverlay').style.display='flex';$('endTitle').textContent=lives<=0?'Brokoli perlukan rehat!':'Tahniah, pelari sihat!';$('endEmoji').textContent=lives<=0?'💚':'🏆';$('endText').textContent=`Skor anda: ${score} · Jarak: ${Math.floor(distance/10)} m. ${score>=250?'Hebat! Terus amalkan pemakanan seimbang dan gaya hidup aktif.':'Cuba lagi untuk kumpul lebih banyak tenaga dan ilmu sihat!'}`}
+function tick(){
+ if(!running)return;
+ if(!paused){
+  frame++;distance+=speed;speed=5+Math.min(3,distance/2400);spawn();
+  player.y+=player.vy;player.vy+=.72;if(player.y>=ground-player.h){player.y=ground-player.h;player.vy=0;player.onGround=true}
+  obstacles.forEach(o=>o.x-=speed);fruits.forEach(f=>f.x-=speed);
+  obstacles=obstacles.filter(o=>o.x>-70);fruits=fruits.filter(f=>f.x>-50);
+  const p={x:player.x+9,y:player.y+9,w:42,h:49};
+  obstacles.forEach(o=>{if(!o.hit&&overlap(p,{x:o.x+7,y:ground-43,w:35,h:43})){o.hit=true;lives--;energy=Math.max(0,energy-12);hud();if(lives<=0)end()}});
+  fruits.forEach(f=>{if(!f.hit&&overlap(p,{x:f.x,y:f.y-25,w:30,h:30})){f.hit=true;score+=20;energy=Math.min(100,energy+8);hud()}});
+  fruits=fruits.filter(f=>!f.hit);obstacles=obstacles.filter(o=>!o.hit);
+  if(frame%720===0)showQuiz();
+  if(frame%30===0)hud();
+ }
+ draw();requestAnimationFrame(tick);
+}
+function start(){score=0;energy=60;lives=3;distance=0;frame=0;speed=5;obstacles=[];fruits=[];player.y=ground-player.h;player.vy=0;player.onGround=true;quizIndex=0;running=true;paused=false;quizActive=false;$('startOverlay').style.display='none';$('endOverlay').style.display='none';$('quizOverlay').style.display='none';hud();tick()}
+$('startBtn').onclick=start;$('againBtn').onclick=start;$('jumpBtn').onclick=jump;$('quizBtn').onclick=showQuiz;
+window.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump()}});
+canvas.addEventListener('pointerdown',jump);
+hud();draw();
+})();
+</script>
+</body>
+</html>

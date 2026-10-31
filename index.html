@@ -2,168 +2,596 @@
 <html lang="ms">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#123c35">
-<title>Healthy Run — Misi Hidup Sihat</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14423a">
+<meta name="description" content="Lari Sihat: game pendidikan SDG 3. Lari, elak makanan ringan, dan jawab kuiz pemakanan sihat untuk dapatkan tenaga.">
+<title>Lari Sihat: Misi Tenaga</title>
 <style>
-:root{--ink:#173b35;--mint:#dff7e9;--lime:#c8f36a;--coral:#ff806e;--cream:#fff9e9}
-*{box-sizing:border-box} body{margin:0;background:linear-gradient(145deg,#e7fff1,#fff5df);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);min-height:100vh}
-.wrap{max-width:1050px;margin:auto;padding:22px 16px 36px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-.brand{font-weight:1000;font-size:clamp(22px,4vw,34px);letter-spacing:-1px}.brand span{color:#e56c50}
-.pill{background:#fff;border:2px solid #d4eadb;border-radius:99px;padding:8px 13px;font-weight:800;font-size:13px}
-.panel{background:#fff;border:2px solid #d9ebdd;border-radius:24px;padding:15px;box-shadow:0 10px 30px #285c3914}
-.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
-.stat{background:#f2fbf3;border-radius:15px;padding:9px 12px}.stat small{display:block;color:#628078;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.6px}.stat strong{font-size:20px}
-.energyTrack{height:9px;background:#dcebe0;border-radius:99px;overflow:hidden;margin-top:4px}.energyFill{height:100%;width:60%;background:linear-gradient(90deg,#8bdc79,#d1e95c);border-radius:99px;transition:width .2s}
-.stage{position:relative;overflow:hidden;border-radius:20px;background:#bdeed5;border:2px solid #cce7d2}
-canvas{display:block;width:100%;height:auto;touch-action:manipulation}
-.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;background:#0b302d9c}
-.dialog{width:min(440px,100%);background:#fffdf3;border:3px solid #fff;border-radius:22px;padding:22px;text-align:center;box-shadow:0 16px 45px #123c3540}
-.dialog h1{margin:0 0 8px;font-size:clamp(24px,5vw,34px)}.dialog p{line-height:1.5;color:#526b63}
-button{border:0;border-radius:14px;background:var(--ink);color:white;font-weight:900;padding:12px 18px;font-size:15px;cursor:pointer;box-shadow:0 4px 0 #0b2925;transition:transform .1s}
-button:active{transform:translateY(3px);box-shadow:0 1px 0 #0b2925}
-button.secondary{background:#eaf6e9;color:var(--ink);box-shadow:0 4px 0 #c8dfca}
-.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}
-.answers button{background:#eaf6e9;color:var(--ink);box-shadow:0 4px 0 #c8dfca;text-align:left}
-.answers button:hover{background:#d7f3dd}.answers button:disabled{opacity:.55;cursor:default}
-.feedback{font-weight:900;min-height:26px;margin:12px 0 0}
-.controls{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:13px}
-.hint{font-size:13px;color:#567269;line-height:1.45}.actions{display:flex;gap:8px;flex-wrap:wrap}
-footer{text-align:center;color:#668178;font-size:12px;margin-top:15px}
-@media(max-width:600px){.hud{grid-template-columns:repeat(2,1fr)}.answers{grid-template-columns:1fr}.wrap{padding:13px 10px 25px}.dialog{padding:17px}}
+:root{
+  --ink:#14423a;--ink2:#2f5d54;--muted:#5d7a72;--mint:#e3f8ec;--line:#cfe6d7;
+  --lime:#b9ec5a;--sun:#ffcf3f;--coral:#ff7a63;--sky:#9fe3d3;--card:#fffdf5;--good:#1f8a4c;--bad:#c4473a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:linear-gradient(160deg,#e4fbef,#fff4dc);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);min-height:100vh;min-height:100dvh}
+.wrap{max-width:1000px;margin:auto;padding:14px 12px 28px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.brand{font-weight:900;font-size:clamp(22px,4.5vw,32px);letter-spacing:-.5px}
+.brand span{color:#e2603f}
+.tag{background:#fff;border:2px solid var(--line);border-radius:99px;padding:6px 12px;font-weight:800;font-size:12px}
+.hud{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.4fr;gap:8px;margin-bottom:8px}
+.stat{background:#fff;border:2px solid var(--line);border-radius:14px;padding:7px 10px;min-width:0}
+.stat small{display:block;color:var(--muted);font-weight:800;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px}
+.stat strong{font-size:18px;white-space:nowrap}
+.bar{height:10px;background:#e1eee5;border-radius:99px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;width:60%;border-radius:99px;background:linear-gradient(90deg,#7fd66c,#d9ec4f);transition:width .15s}
+.bar.low i{background:linear-gradient(90deg,#ff6d5a,#ffb347)}
+.zones{display:flex;gap:3px;margin-top:5px}
+.zones b{flex:1;height:8px;border-radius:4px;background:#e1eee5}
+.zones b.done{background:#7fd66c}.zones b.now{background:var(--sun)}
+.stage{position:relative;overflow:hidden;border-radius:18px;border:2px solid var(--line);background:#bdeed5;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;width:100%;height:auto}
+.overlay{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:12px;background:#0b302dad;overflow:auto}
+.overlay.show{display:flex}
+.dialog{width:min(560px,100%);max-height:100%;overflow:auto;background:var(--card);border-radius:20px;padding:20px;text-align:center;box-shadow:0 16px 45px #0b302d55}
+.dialog h1{margin:4px 0 6px;font-size:clamp(22px,4.6vw,32px);line-height:1.15}
+.dialog h2{margin:2px 0 10px;font-size:clamp(17px,3.6vw,22px);line-height:1.3}
+.dialog p{line-height:1.5;color:#4f6b63;margin:8px 0}
+.big{font-size:44px;line-height:1}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;text-align:left}
+.how div{background:var(--mint);border-radius:12px;padding:8px;font-size:12.5px;line-height:1.35}
+.how b{display:block;font-size:20px}
+button{font:inherit;border:0;border-radius:13px;background:var(--ink);color:#fff;font-weight:900;padding:11px 16px;font-size:15px;cursor:pointer;box-shadow:0 4px 0 #0a2824;transition:transform .08s}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 #0a2824}
+button.soft{background:#e9f6ea;color:var(--ink);box-shadow:0 4px 0 #c5dcc8}
+button.sun{background:var(--sun);color:#3b2e00;box-shadow:0 4px 0 #d3a414}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.answers button{background:#eef8ee;color:var(--ink);box-shadow:0 4px 0 #c5dcc8;text-align:left;font-weight:800;font-size:14.5px;line-height:1.3}
+.answers button.ok{background:#c9f2d5;box-shadow:0 4px 0 #8fd3a4}
+.answers button.no{background:#ffd9d2;box-shadow:0 4px 0 #f0a597}
+.answers button:disabled{cursor:default}
+.qmeta{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.chip{display:inline-block;background:var(--mint);border-radius:99px;padding:4px 10px;font-size:12px;font-weight:800}
+.feedback{font-weight:800;margin-top:12px;line-height:1.45;min-height:0}
+.feedback.ok{color:var(--good)}.feedback.bad{color:var(--bad)}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.controls .actions{display:flex;gap:8px;flex:1;justify-content:flex-end}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.4;flex:1 1 260px}
+#jumpBtn{min-width:130px;font-size:17px;padding:14px 18px}
+.summary{text-align:left;background:var(--mint);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13.5px;line-height:1.5}
+.summary div{display:flex;justify-content:space-between;gap:8px}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:14px;line-height:1.5}
+@media(max-width:640px){
+  .hud{grid-template-columns:1fr 1fr}
+  .answers{grid-template-columns:1fr}
+  .how{grid-template-columns:1fr}
+  .dialog{padding:15px}
+  .controls .actions{width:100%}
+  .controls .actions button{flex:1}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header><div class="brand">🍓 HEALTHY <span>RUN!</span></div><div class="pill">SDG 3 · Kesihatan Baik & Kesejahteraan</div></header>
+<header>
+  <div class="brand">🥦 LARI <span>SIHAT!</span></div>
+  <div class="tag">SDG 3 · Kesihatan Baik &amp; Kesejahteraan</div>
+</header>
+
 <div class="hud">
- <div class="stat"><small>Skor</small><strong id="score">0</strong></div>
- <div class="stat"><small>Tenaga ⚡</small><strong id="energyText">60%</strong><div class="energyTrack"><div class="energyFill" id="energyFill"></div></div></div>
- <div class="stat"><small>Nyawa ❤️</small><strong id="lives">❤️❤️❤️</strong></div>
- <div class="stat"><small>Jarak</small><strong id="distance">0 m</strong></div>
+  <div class="stat"><small>Tenaga ⚡ <span id="energyText">60</span>%</small><div class="bar" id="energyBar"><i id="energyFill"></i></div></div>
+  <div class="stat"><small>Nyawa</small><strong id="lives">❤️❤️❤️</strong></div>
+  <div class="stat"><small>Skor</small><strong id="score">0</strong></div>
+  <div class="stat"><small id="zoneName">Zon 1</small><div class="zones" id="zones"><b></b><b></b><b></b><b></b><b></b></div></div>
 </div>
-<div class="panel">
- <div class="stage">
-  <canvas id="game" width="960" height="430" aria-label="Permainan pelari Healthy Run"></canvas>
-  <div class="overlay" id="startOverlay">
-   <div class="dialog">
-    <div style="font-size:54px">🥦 🏃‍♀️ 🍓</div>
-    <h1>Jom hidup sihat!</h1>
-    <p>Bantu Brokoli berlari, elak halangan dan kumpul buah. Jawab kuiz untuk mengecas tenaga sebelum melompat!</p>
-    <button id="startBtn">MULA BERMAIN ▶</button>
-    <p style="font-size:12px;margin-bottom:0">Papan kekunci: SPACE / ↑ untuk lompat · Telefon: sentuh butang LOMPAT</p>
-   </div>
+
+<div class="stage" id="stage">
+  <canvas id="game" width="960" height="460" aria-label="Permainan Lari Sihat"></canvas>
+
+  <div class="overlay show" id="startOv">
+    <div class="dialog">
+      <div class="big">🏃‍♂️⚡🍎</div>
+      <h1>Lari Sihat: Misi Tenaga</h1>
+      <p>Bantu Sihat berlari merentasi <b>5 zon</b>. Untuk bergerak, dia perlukan <b>tenaga</b>. Bila tenaga habis, dia berhenti, dan anda perlu <b>jawab soalan</b> tentang pemakanan sihat dan gaya hidup aktif untuk isi semula tenaga!</p>
+      <div class="how">
+        <div><b>⬆️</b>Lompat: tekan SPACE / ↑, sentuh skrin, atau butang LOMPAT</div>
+        <div><b>🍩🥤</b>Elak makanan ringan. Langgar = hilang nyawa</div>
+        <div><b>🍎🥦</b>Kutip makanan sihat untuk skor &amp; tenaga tambahan</div>
+      </div>
+      <button class="sun" id="startBtn">MULA BERMAIN ▶</button>
+      <p style="font-size:12px;margin-bottom:0" id="bestText"></p>
+    </div>
   </div>
-  <div class="overlay" id="quizOverlay" style="display:none">
-   <div class="dialog">
-    <div style="font-size:36px">🧠 ⚡</div>
-    <div class="pill" style="display:inline-block">CABARAN TENAGA</div>
-    <h1 style="font-size:25px" id="question">Soalan</h1>
-    <div class="answers" id="answers"></div>
-    <div class="feedback" id="feedback"></div>
-   </div>
+
+  <div class="overlay" id="quizOv">
+    <div class="dialog">
+      <div class="qmeta"><span class="chip" id="qZone">Zon</span><span class="chip" id="qWhy">⚡ Cabaran Tenaga</span></div>
+      <h2 id="qText">Soalan</h2>
+      <div class="answers" id="answers"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="row" id="quizNext" style="display:none"><button id="nextBtn">TERUSKAN ▶</button></div>
+    </div>
   </div>
-  <div class="overlay" id="endOverlay" style="display:none">
-   <div class="dialog">
-    <div style="font-size:52px" id="endEmoji">🏁</div>
-    <h1 id="endTitle">Permainan tamat!</h1>
-    <p id="endText"></p>
-    <button id="againBtn">MAIN LAGI ↻</button>
-   </div>
+
+  <div class="overlay" id="pauseOv">
+    <div class="dialog">
+      <div class="big">⏸️</div>
+      <h1>Rehat sekejap</h1>
+      <div class="row"><button class="sun" id="resumeBtn">SAMBUNG ▶</button><button class="soft" id="restartBtn">MULA SEMULA ↻</button></div>
+    </div>
   </div>
- </div>
- <div class="controls">
-  <div class="hint"><b>Tip:</b> Jawapan betul = +30 tenaga. Lompat menggunakan 20 tenaga. Buah memberi bonus skor dan tenaga!</div>
-  <div class="actions"><button class="secondary" id="quizBtn">JAWAB KUIZ +⚡</button><button id="jumpBtn">LOMPAT ⬆</button></div>
- </div>
+
+  <div class="overlay" id="endOv">
+    <div class="dialog">
+      <div class="big" id="endEmoji">🏆</div>
+      <h1 id="endTitle">Tahniah!</h1>
+      <p id="endText"></p>
+      <div class="summary" id="summary"></div>
+      <div class="row"><button class="sun" id="againBtn">MAIN LAGI ↻</button></div>
+    </div>
+  </div>
 </div>
-<footer>Permainan pendidikan SDG 3 · Pemakanan sihat dan gaya hidup aktif</footer>
+
+<div class="controls">
+  <div class="hint"><b>Tip:</b> Tenaga berkurang semasa berlari dan melompat. Jawapan betul = <b>+40 ⚡</b>. Anda juga boleh jawab soalan bila-bila masa untuk tambah tenaga.</div>
+  <div class="actions">
+    <button class="soft" id="soundBtn" aria-label="Bunyi">🔊</button>
+    <button class="soft" id="pauseBtn" aria-label="Rehat">⏸️</button>
+    <button class="soft" id="quizBtn">KUIZ +⚡</button>
+    <button class="sun" id="jumpBtn">LOMPAT ⬆</button>
+  </div>
 </div>
+
+<footer>Permainan pendidikan SDG 3 · Topik ESD: Pemakanan sihat dan gaya hidup aktif<br>Zon: Isih Makanan · Tabiat Makan Sihat · Simulator Makanan Sihat · Minda Tenang · Rutin Harian Sihat</footer>
+</div>
+
 <script>
 (() => {
-const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
-const $=id=>document.getElementById(id);
-const questions=[
- {q:"Apakah maksud pinggan sihat suku-suku-separuh?",a:["½ sayur/buah, ¼ bijirin, ¼ protein","Semua nasi","½ makanan manis","Hanya protein"],c:0,why:"Pinggan sihat menggalakkan separuh pinggan sayur dan buah, serta suku bijirin dan suku sumber protein."},
- {q:"Minuman apakah pilihan terbaik untuk menghilangkan dahaga?",a:["Air kosong","Minuman berkarbonat","Sirap pekat","Minuman tenaga"],c:0,why:"Air kosong membantu tubuh kekal terhidrat."},
- {q:"Yang manakah contoh sumber protein?",a:["Ikan dan telur","Gula-gula","Air berperisa","Ais krim"],c:0,why:"Ikan dan telur ialah antara sumber protein."},
- {q:"Mengapa kita perlu makan buah dan sayur?",a:["Membekalkan serat, vitamin dan mineral","Supaya tidak perlu minum air","Menggantikan semua makanan","Untuk menambah gula"],c:0,why:"Buah dan sayur membekalkan serat, vitamin dan mineral yang penting."},
- {q:"Aktiviti manakah membantu menjadikan badan lebih aktif?",a:["Berjalan pantas","Duduk sepanjang hari","Bermain telefon tanpa rehat","Tidur ketika kelas"],c:0,why:"Berjalan pantas ialah aktiviti fizikal yang menggerakkan badan."},
- {q:"Apakah amalan yang baik sebelum makan?",a:["Membasuh tangan","Tidak mencuci tangan","Berkongsi sudu kotor","Makan dengan tergesa-gesa"],c:0,why:"Membasuh tangan membantu mengurangkan penyebaran kuman."},
- {q:"Apakah pilihan snek yang lebih berkhasiat?",a:["Buah segar","Gula-gula sahaja","Kerepek setiap masa","Minuman manis"],c:0,why:"Buah segar ialah pilihan snek yang membekalkan serat dan vitamin."},
- {q:"Mengapa tidur yang cukup penting?",a:["Membantu tubuh berehat dan pulih","Supaya tidak perlu bersenam","Menggantikan makanan","Menjadikan kita sentiasa lapar"],c:0,why:"Tidur membantu badan dan minda berehat serta pulih."},
- {q:"Apakah contoh gaya hidup aktif?",a:["Bermain bola atau berbasikal","Duduk terlalu lama","Mengelak semua pergerakan","Menonton TV sepanjang hari"],c:0,why:"Bermain bola dan berbasikal ialah contoh aktiviti fizikal."},
- {q:"Jika memilih makanan, apakah amalan yang lebih baik?",a:["Pelbagaikan makanan dan kawal saiz hidangan","Makan satu jenis sahaja","Pilih makanan paling manis","Langkau semua waktu makan"],c:0,why:"Pemakanan seimbang melibatkan kepelbagaian makanan dan saiz hidangan yang sesuai."},
- {q:"Apakah kesan terlalu banyak minuman bergula?",a:["Pengambilan gula berlebihan","Menjadikan air kosong tidak perlu","Menggantikan sayur","Membina otot secara automatik"],c:0,why:"Kerap mengambil minuman bergula boleh meningkatkan pengambilan gula harian."},
- {q:"Apakah cara mudah untuk kurangkan duduk terlalu lama?",a:["Bangun dan bergerak secara berkala","Terus duduk berjam-jam","Tidak bergerak langsung","Tidur di meja"],c:0,why:"Berehat seketika untuk berdiri dan bergerak membantu memecahkan tempoh duduk yang panjang."}
+"use strict";
+const $ = id => document.getElementById(id);
+const canvas = $("game"), ctx = canvas.getContext("2d");
+const W = 960, H = 460, GROUND = 380;
+
+// ---------------- zones & questions ----------------
+const ZONES = [
+  {name:"Isih Makanan", icon:"🧺", sky:["#9fe3d3","#e8f9cf"], hill:"#8fd19a", tree:"#49a774"},
+  {name:"Tabiat Makan Sihat", icon:"🍽️", sky:["#a9dcf5","#f0f7d4"], hill:"#9ccf8d", tree:"#3f9a6a"},
+  {name:"Simulator Makanan Sihat", icon:"🥗", sky:["#ffd9a8","#fff3d6"], hill:"#b5d27f", tree:"#5f9f4a"},
+  {name:"Minda Tenang", icon:"🧘", sky:["#c9c3f5","#f3e9ff"], hill:"#a6c7b8", tree:"#5c8f87"},
+  {name:"Rutin Harian Sihat", icon:"📅", sky:["#ffb99a","#ffe9c6"], hill:"#9fcf8c", tree:"#3d8f62"},
 ];
-let running=false,paused=false,score=0,energy=60,lives=3,distance=0,frame=0,speed=5,obstacles=[],fruits=[],quizIndex=0,quizTimer=0,quizActive=false;
-const ground=350,player={x:145,y:ground-62,w:58,h:62,vy:0,onGround:true};
-function hud(){ $('score').textContent=score; $('energyText').textContent=energy+'%';$('energyFill').style.width=energy+'%';$('lives').textContent='❤️'.repeat(lives)+'🖤'.repeat(3-lives);$('distance').textContent=Math.floor(distance/10)+' m';}
-function drawCloud(x,y,s=1){ctx.fillStyle="#ffffffb9";ctx.beginPath();ctx.arc(x,y,18*s,0,Math.PI*2);ctx.arc(x+22*s,y-9*s,23*s,0,Math.PI*2);ctx.arc(x+47*s,y,17*s,0,Math.PI*2);ctx.fill()}
-function draw(){
- ctx.clearRect(0,0,960,430);
- let sky=ctx.createLinearGradient(0,0,0,430);sky.addColorStop(0,'#9ce4d0');sky.addColorStop(1,'#e7f8c9');ctx.fillStyle=sky;ctx.fillRect(0,0,960,430);
- drawCloud(130-(frame*.25%1100),75,.9);drawCloud(570-(frame*.18%1100),115,.7);drawCloud(870-(frame*.2%1100),55,.8);
- // hills and trees
- ctx.fillStyle='#91d49c';ctx.beginPath();ctx.moveTo(0,280);ctx.quadraticCurveTo(180,180,360,280);ctx.quadraticCurveTo(580,175,770,275);ctx.quadraticCurveTo(870,220,960,260);ctx.lineTo(960,350);ctx.lineTo(0,350);ctx.fill();
- for(let i=0;i<8;i++){let x=((i*155-frame*.65)%1150+1150)%1150-100;ctx.fillStyle='#4eaa78';ctx.beginPath();ctx.arc(x,275,32,0,Math.PI*2);ctx.fill();ctx.fillRect(x-5,275,10,45)}
- ctx.fillStyle='#78c77e';ctx.fillRect(0,ground,960,80);ctx.fillStyle='#4d9b62';ctx.fillRect(0,ground,960,7);
- for(let i=0;i<18;i++){let x=((i*75-frame*1.8)%1000+1000)%1000;ctx.fillStyle='#d5ef9a';ctx.fillRect(x,ground+28,23,4)}
- // fruits
- fruits.forEach(f=>{ctx.font='30px sans-serif';ctx.fillText(f.emoji,f.x,f.y)});
- // obstacles
- obstacles.forEach(o=>{ctx.font='48px sans-serif';ctx.fillText(o.emoji,o.x,ground+2)});
- // runner shadow
- ctx.fillStyle='#367b5b55';ctx.beginPath();ctx.ellipse(player.x+28,ground+4,32,7,0,0,Math.PI*2);ctx.fill();
- // cute broccoli runner
- ctx.font='54px sans-serif';ctx.fillText('🥦',player.x,player.y+53);
- ctx.font='22px sans-serif';ctx.fillText('👟',player.x+23,player.y+61);
- // running sparkles
- if(running && frame%12<6){ctx.fillStyle='#fff4a8';ctx.beginPath();ctx.arc(player.x-10,player.y+48,4,0,7);ctx.fill()}
+// c = index of the correct answer (answers are shuffled on screen)
+const Q = [
+ [ // 1. Food sorting
+  {q:"🍚 Nasi, roti dan mi termasuk dalam kumpulan makanan apa?",a:["Bijirin & ubi","Protein","Lemak & gula","Susu"],c:0,e:"Nasi, roti, mi dan ubi ialah bijirin: sumber tenaga utama badan."},
+  {q:"🐟 Ikan, ayam, telur dan kekacang ialah sumber…",a:["Protein","Gula","Lemak sahaja","Serat sahaja"],c:0,e:"Protein membina dan membaiki otot serta tisu badan."},
+  {q:"🥛 Susu, keju dan yogurt kaya dengan…",a:["Kalsium untuk tulang & gigi","Gula semata-mata","Kafein","Garam"],c:0,e:"Produk tenusu membekalkan kalsium untuk tulang dan gigi yang kuat."},
+  {q:"🍩🍟 Di manakah makanan bergula, berlemak dan masin dalam Piramid Makanan?",a:["Di puncak: makan sedikit sahaja","Di dasar: makan paling banyak","Di tengah: makan setiap jam","Tiada dalam piramid"],c:0,e:"Lemak, gula dan garam berada di puncak piramid, jadi ambil dalam kuantiti sedikit."},
+  {q:"🥕🍌 Sayur-sayuran dan buah-buahan membekalkan…",a:["Vitamin, mineral & serat","Lemak tepu","Gula tambahan","Kafein"],c:0,e:"Sayur dan buah kaya dengan vitamin, mineral dan serat."},
+  {q:"Isih makanan ini: 🥚 Telur masuk bakul mana?",a:["Protein","Bijirin","Lemak & gula","Minuman manis"],c:0,e:"Telur ialah sumber protein yang mudah didapati."},
+  {q:"Isih makanan ini: 🥔 Ubi kentang masuk bakul mana?",a:["Bijirin & ubi","Protein","Susu","Lemak & gula"],c:0,e:"Ubi kentang membekalkan karbohidrat seperti nasi dan roti."},
+  {q:"Isih makanan ini: 🥤 Air bergas bergula masuk bakul mana?",a:["Hadkan: tinggi gula","Makan setiap hari","Sumber protein","Sumber kalsium"],c:0,e:"Minuman bergas tinggi gula, jadi pilih air kosong."},
+  {q:"Makanan manakah paling sesuai di DASAR Piramid Makanan?",a:["Bijirin seperti nasi & roti","Kuih manis","Kerepek","Coklat"],c:0,e:"Bijirin berada di dasar piramid kerana ia sumber tenaga utama."},
+  {q:"Kekacang seperti kacang dal dan tempe ialah contoh…",a:["Protein daripada tumbuhan","Lemak & gula","Minuman","Tenusu"],c:0,e:"Kekacang dan produk soya ialah sumber protein tumbuhan."},
+ ],
+ [ // 2. Healthy food habits (animation story)
+  {q:"Mengapa sarapan pagi penting?",a:["Memberi tenaga untuk belajar & bermain","Supaya boleh tidur di kelas","Tidak penting langsung","Untuk minum air manis"],c:0,e:"Sarapan membekalkan tenaga dan membantu fokus di sekolah."},
+  {q:"Apakah amalan yang baik SEBELUM makan?",a:["Basuh tangan dengan sabun","Terus makan walaupun tangan kotor","Main telefon","Tidak perlu apa-apa"],c:0,e:"Membasuh tangan membuang kuman yang boleh menyebabkan penyakit."},
+  {q:"Minuman terbaik untuk menghilangkan dahaga ialah…",a:["Air kosong","Air bergas","Sirap pekat","Minuman tenaga"],c:0,e:"Air kosong menghidratkan badan tanpa gula tambahan."},
+  {q:"Berapa gelas air kosong yang disyorkan sehari?",a:["Kira-kira 6–8 gelas","1 gelas sahaja","Tidak perlu minum","20 gelas sekaligus"],c:0,e:"Minum kira-kira 6–8 gelas air sehari, lebih lagi bila aktif atau cuaca panas."},
+  {q:"Snek manakah pilihan lebih sihat?",a:["Buah segar","Gula-gula","Kerepek bergoreng","Donat bersalut coklat"],c:0,e:"Buah segar membekalkan vitamin dan serat dengan gula semula jadi."},
+  {q:"Apakah tabiat makan yang baik?",a:["Makan perlahan & kunyah dengan baik","Makan sangat laju","Makan sambil berlari","Langkau semua waktu makan"],c:0,e:"Makan perlahan membantu penghadaman dan kita tahu bila sudah kenyang."},
+  {q:"Mengapa kita patut kurangkan makanan segera (fast food)?",a:["Tinggi lemak, garam & gula","Terlalu banyak sayur","Terlalu banyak air","Kerana ia sihat sangat"],c:0,e:"Makanan segera biasanya tinggi lemak, garam dan gula."},
+  {q:"Bila sebaiknya berhenti makan?",a:["Bila rasa kenyang","Bila pinggan kawan habis","Hanya bila sakit perut","Tidak perlu berhenti"],c:0,e:"Dengar isyarat badan dan berhenti bila sudah kenyang."},
+  {q:"Makan sambil menonton skrin boleh menyebabkan…",a:["Makan berlebihan tanpa sedar","Badan lebih tinggi","Mata lebih sihat","Tidur lebih awal"],c:0,e:"Bila leka dengan skrin, kita mudah makan lebih daripada yang perlu."},
+  {q:"Makan bersama keluarga di meja makan membantu…",a:["Tabiat makan teratur & hubungan erat","Makan lebih banyak gula","Langkau sarapan","Tidur lewat"],c:0,e:"Makan bersama menggalakkan waktu makan teratur dan ikatan keluarga."},
+ ],
+ [ // 3. Healthy food simulator (balanced plate)
+  {q:"Pinggan Sihat Malaysia: separuh (½) pinggan patut diisi dengan…",a:["Sayur & buah","Nasi","Ayam goreng","Kuih"],c:0,e:"Konsep suku-suku-separuh: ½ sayur & buah, ¼ bijirin, ¼ protein."},
+  {q:"Dalam Pinggan Sihat, berapa bahagian untuk nasi/bijirin?",a:["Suku (¼) pinggan","Penuh pinggan","Separuh pinggan","Tiada langsung"],c:0,e:"Bijirin mengisi ¼ pinggan, protein ¼ dan sayur & buah ½."},
+  {q:"Anda sedang bina makan tengah hari. Pilih hidangan paling seimbang:",a:["Nasi + ikan bakar + sayur + buah","Nasi + nasi + kerepek","Mi segera + air bergas","Kek + aiskrim"],c:0,e:"Hidangan seimbang ada bijirin, protein, sayur dan buah."},
+  {q:"Kaedah memasak manakah lebih sihat?",a:["Rebus, kukus atau bakar","Goreng dalam minyak banyak","Goreng berulang kali","Tambah gula banyak"],c:0,e:"Merebus, mengukus dan membakar menggunakan kurang minyak."},
+  {q:"Gantikan minuman manis dalam set makanan anda dengan…",a:["Air kosong","Air bergas","Teh tarik extra manis","Sirap"],c:0,e:"Air kosong memastikan hidangan anda bebas gula tambahan."},
+  {q:"Saiz hidangan yang sesuai bermaksud…",a:["Makan secukupnya, tidak berlebihan","Tambah nasi tiga kali","Makan sehingga sakit perut","Makan sekali sehari sahaja"],c:0,e:"Kawal saiz hidangan supaya tenaga yang masuk seimbang dengan keperluan."},
+  {q:"Pilihan roti yang lebih tinggi serat ialah…",a:["Roti gandum penuh (wholemeal)","Roti manis berkrim","Donat","Biskut coklat"],c:0,e:"Bijirin penuh mengandungi lebih banyak serat dan mengenyangkan lebih lama."},
+  {q:"Membaca label makanan membantu kita…",a:["Pilih makanan kurang gula, garam & lemak","Tahu warna kotak","Makan lebih banyak","Tiada gunanya"],c:0,e:"Label nutrisi menunjukkan kandungan gula, garam dan lemak."},
+  {q:"Pelangi di pinggan (pelbagai warna sayur & buah) bermaksud…",a:["Lebih banyak jenis vitamin & mineral","Makanan berwarna tiruan","Lebih banyak gula","Tiada beza"],c:0,e:"Warna berbeza membekalkan nutrien yang berbeza."},
+  {q:"Untuk snek petang selepas bersukan, pilih…",a:["Pisang + segelas susu","Gula-gula + air bergas","Kerepek pedas","Tiada makan langsung, minum kopi"],c:0,e:"Pisang dan susu membekalkan tenaga, protein dan kalsium."},
+ ],
+ [ // 4. Calm mind (stop overthinking)
+  {q:"Apakah maksud 'overthinking'?",a:["Fikir berlebihan tentang sesuatu berulang kali","Tidur terlalu lama","Bersenam terlalu kuat","Makan terlalu cepat"],c:0,e:"Overthinking ialah memikirkan sesuatu berulang-ulang sehingga rasa risau atau penat."},
+  {q:"Cara cepat untuk tenangkan diri bila rasa cemas:",a:["Tarik nafas dalam perlahan-lahan","Tahan nafas lama","Marah orang lain","Tidak tidur semalaman"],c:0,e:"Pernafasan dalam dan perlahan membantu badan dan minda bertenang."},
+  {q:"Menulis apa yang difikirkan dalam jurnal boleh…",a:["Melegakan fikiran & susun masalah","Menambah masalah","Membuang masa sahaja","Merosakkan mata"],c:0,e:"Menulis membantu kita lihat masalah dengan lebih jelas."},
+  {q:"Bila ada masalah yang membebankan, langkah yang baik ialah…",a:["Bercakap dengan orang dipercayai","Simpan seorang diri selama-lamanya","Abaikan semua orang","Main game sepanjang malam"],c:0,e:"Berkongsi dengan keluarga, guru atau kaunselor membantu meringankan beban."},
+  {q:"Aktiviti fizikal seperti berjalan atau bersukan membantu minda kerana…",a:["Kurangkan tekanan & baiki mood","Membuat kita lebih risau","Tiada kaitan dengan minda","Menyebabkan susah tidur"],c:0,e:"Bersenam membebaskan hormon yang membantu mood dan kurangkan stres."},
+  {q:"Menggunakan telefon sehingga lewat malam boleh…",a:["Mengganggu tidur & tambah resah","Menjadikan tidur lebih nyenyak","Menambah tenaga esok","Menyihatkan mata"],c:0,e:"Cahaya skrin dan kandungan media sosial boleh mengganggu tidur."},
+  {q:"Fokus pada perkara yang BOLEH kita kawal bermaksud…",a:["Ambil tindakan kecil yang mampu dibuat","Risau tentang semua perkara","Salahkan diri sendiri","Berputus asa"],c:0,e:"Tumpu pada tindakan yang boleh dibuat sekarang mengurangkan rasa risau."},
+  {q:"Tidur yang cukup penting untuk kesihatan mental kerana…",a:["Otak berehat & emosi lebih stabil","Tidak penting langsung","Membuat kita lebih mudah marah","Hanya untuk orang tua"],c:0,e:"Tidur yang cukup membantu otak memproses emosi dan ingatan."},
+  {q:"Teknik 5-4-3-2-1 (cari 5 benda dilihat, 4 disentuh…) digunakan untuk…",a:["Bawa fikiran kembali ke masa kini","Mengira markah ujian","Bersenam","Memasak"],c:0,e:"Teknik grounding ini membantu minda berhenti berfikir berlebihan."},
+  {q:"Apakah sikap yang sihat terhadap kesilapan?",a:["Belajar daripadanya & cuba lagi","Fikir tentangnya setiap malam","Malu sehingga tidak mahu mencuba","Salahkan orang lain"],c:0,e:"Kesilapan ialah peluang belajar. Bersikap baik dengan diri sendiri."},
+ ],
+ [ // 5. Daily healthy routine (habit planner)
+  {q:"Berapa lama remaja digalakkan aktif secara fizikal setiap hari?",a:["Sekurang-kurangnya 60 minit","5 minit sahaja","Sekali seminggu","Tidak perlu"],c:0,e:"WHO menggalakkan kanak-kanak dan remaja aktif sekurang-kurangnya 60 minit sehari."},
+  {q:"Berapa jam tidur yang diperlukan oleh remaja?",a:["Kira-kira 8–10 jam","3 jam","15 jam","Tidak tentu, tidur bila-bila"],c:0,e:"Remaja memerlukan kira-kira 8–10 jam tidur setiap malam."},
+  {q:"Untuk membina tabiat baru, cara paling berkesan ialah…",a:["Mula kecil & buat secara konsisten","Buat semuanya sekaligus","Buat sekali sahaja","Tunggu mood datang"],c:0,e:"Tabiat terbina melalui langkah kecil yang diulang setiap hari."},
+  {q:"Menanda tabiat (habit tracker) dalam planner membantu kita…",a:["Lihat kemajuan & kekal bermotivasi","Lupa tabiat","Tidak perlu usaha","Tidur lewat"],c:0,e:"Melihat rantaian hari yang berjaya memberi motivasi untuk teruskan."},
+  {q:"Duduk terlalu lama (contoh main gajet berjam-jam) boleh dikurangkan dengan…",a:["Bangun & bergerak setiap 30–60 minit","Duduk lebih lama","Baring sahaja","Makan snek lagi"],c:0,e:"Rehat sekejap untuk berdiri dan bergerak memecahkan tempoh duduk yang lama."},
+  {q:"Rutin malam yang membantu tidur nyenyak ialah…",a:["Tutup skrin awal & tidur pada waktu sama","Minum kopi sebelum tidur","Main game sampai tengah malam","Makan besar tepat sebelum tidur"],c:0,e:"Waktu tidur yang tetap dan kurang skrin membantu tidur lebih berkualiti."},
+  {q:"Contoh matlamat harian yang SMART dan sihat:",a:["Berjalan 20 minit selepas sekolah setiap hari","Jadi sihat entah bila","Tidak makan langsung","Bersenam 5 jam sekali"],c:0,e:"Matlamat yang jelas, kecil dan boleh diukur lebih mudah dicapai."},
+  {q:"Peringatan (reminder) minum air dalam aplikasi berguna untuk…",a:["Pastikan badan cukup air sepanjang hari","Minum air bergas","Kurangkan air","Tiada guna"],c:0,e:"Peringatan membantu kita ingat untuk minum air secara berkala."},
+  {q:"Aktiviti manakah contoh gaya hidup aktif?",a:["Berbasikal, bermain bola atau berjalan pantas","Menonton TV sepanjang hari","Duduk berjam-jam","Tidur sepanjang petang"],c:0,e:"Aktiviti yang menggerakkan badan menguatkan jantung dan otot."},
+  {q:"Jika terlepas satu hari tabiat sihat, apa yang patut dibuat?",a:["Sambung semula esok tanpa putus asa","Berhenti terus","Marah diri sendiri","Buang planner"],c:0,e:"Terlepas sehari adalah biasa. Yang penting teruskan semula."},
+ ],
+];
+
+// ---------------- tuning ----------------
+const ZONE_LEN = 7600;               // px of distance per zone
+const MAX_E = 100, DRAIN = 3.4, JUMP_COST = 5, QUIZ_GAIN = 40;
+const GRAV = 2300, JUMP_V = 800;
+const OBST = ["🍩","🍔","🍟","🥤","🍭","🧁"];
+const GOOD = [["🍎",4],["🍌",4],["🥦",5],["🥕",4],["🐟",5],["🥛",4],["💧",6]];
+
+// ---------------- state ----------------
+let state = "menu", score = 0, energy = 60, lives = 3, dist = 0, speed = 300, zone = 0, t = 0;
+let obstacles = [], goods = [], particles = [], floats = [];
+let nextObst = 700, nextGood = 420, inv = 0, banner = 0, tired = 0, quizForced = false;
+let pools = [], stats = [], streak = 0, sound = true, last = 0, flagX = null;
+const P = {x:150, y:GROUND, vy:0, ground:true, run:0};
+
+let best = 0;
+try { best = +localStorage.getItem("lariSihatBest") || 0; } catch (e) {}
+
+// ---------------- sound ----------------
+let ac = null;
+function beep(f, d = .1, type = "sine", v = .08, slide = 0) {
+  if (!sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const o = ac.createOscillator(), g = ac.createGain(), n = ac.currentTime;
+    o.type = type; o.frequency.setValueAtTime(f, n);
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, n + d);
+    g.gain.setValueAtTime(v, n); g.gain.exponentialRampToValueAtTime(.0001, n + d);
+    o.connect(g); g.connect(ac.destination); o.start(n); o.stop(n + d);
+  } catch (e) {}
 }
-function spawn(){if(frame%88===0)obstacles.push({x:1000,emoji:['🪨','📦','🌵'][Math.floor(Math.random()*3)],w:42});if(frame%115===45)fruits.push({x:1000,y:ground-45-Math.random()*70,emoji:['🍎','🍌','🍓','🥕'][Math.floor(Math.random()*4)],w:28})}
-function overlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
-function jump(){if(!running||quizActive)return;if(player.onGround){if(energy<20){showQuiz();return}energy-=20;player.vy=-14;player.onGround=false;hud()}}
-function showQuiz(){
- if(!running||quizActive)return;quizActive=true;paused=true;
- const q=questions[quizIndex%questions.length];quizIndex++;
- $('question').textContent=q.q;$('answers').innerHTML='';$('feedback').textContent='';
- // shuffle so the correct answer is not always "A"
- const order=q.a.map((_,i)=>i).sort(()=>Math.random()-.5);
- order.forEach((i,k)=>{let b=document.createElement('button');b.textContent=String.fromCharCode(65+k)+'. '+q.a[i];b.onclick=()=>answerQuiz(i,q);$('answers').appendChild(b)});
- $('quizOverlay').style.display='flex';
+const sfx = {
+  jump: () => beep(420, .16, "square", .05, 760),
+  coin: () => { beep(880, .08, "triangle", .07); setTimeout(() => beep(1320, .1, "triangle", .07), 70); },
+  hit:  () => beep(180, .3, "sawtooth", .08, 70),
+  ok:   () => [523, 659, 784].forEach((f, i) => setTimeout(() => beep(f, .14, "triangle", .08), i * 90)),
+  bad:  () => beep(260, .3, "square", .05, 150),
+  zone: () => [392, 523, 659, 784].forEach((f, i) => setTimeout(() => beep(f, .12, "triangle", .07), i * 80)),
+};
+
+// ---------------- helpers ----------------
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.random() * a.length | 0];
+function show(id, on) { $(id).classList.toggle("show", on); }
+
+function hud() {
+  const e = Math.round(energy);
+  $("energyText").textContent = e;
+  $("energyFill").style.width = e + "%";
+  $("energyBar").classList.toggle("low", e < 25);
+  $("lives").textContent = "❤️".repeat(lives) + "🤍".repeat(Math.max(0, 3 - lives));
+  $("score").textContent = score;
+  $("zoneName").textContent = `Zon ${zone + 1}: ${ZONES[zone].name}`;
+  [...$("zones").children].forEach((b, i) => b.className = i < zone ? "done" : i === zone ? "now" : "");
 }
-function answerQuiz(i,q){
- [...$('answers').children].forEach(b=>b.disabled=true);
- const ok=i===q.c;
- if(ok){energy=Math.min(100,energy+30);score+=50;$('feedback').textContent='Betul! +30 tenaga ⚡ '+q.why;$('feedback').style.color='#23844d'}
- else{energy=Math.max(0,energy-10);$('feedback').textContent='Belum tepat. '+q.why;$('feedback').style.color='#c45443'}
- hud();setTimeout(()=>{$('quizOverlay').style.display='none';quizActive=false;paused=false;},2200);
+
+function reset() {
+  score = 0; energy = 60; lives = 3; dist = 0; speed = 300; zone = 0; t = 0; streak = 0;
+  obstacles = []; goods = []; particles = []; floats = [];
+  nextObst = 900; nextGood = 520; inv = 0; banner = 2.4; tired = 0; flagX = null;
+  P.y = GROUND; P.vy = 0; P.ground = true;
+  pools = Q.map(z => shuffle(z));
+  stats = ZONES.map(() => ({ok: 0, all: 0}));
+  hud();
 }
-function end(){running=false;$('endOverlay').style.display='flex';$('endTitle').textContent=lives<=0?'Brokoli perlukan rehat!':'Tahniah, pelari sihat!';$('endEmoji').textContent=lives<=0?'💚':'🏆';$('endText').textContent=`Skor anda: ${score} · Jarak: ${Math.floor(distance/10)} m. ${score>=250?'Hebat! Terus amalkan pemakanan seimbang dan gaya hidup aktif.':'Cuba lagi untuk kumpul lebih banyak tenaga dan ilmu sihat!'}`}
-function tick(){
- if(!running)return;
- if(!paused){
-  frame++;distance+=speed;speed=5+Math.min(3,distance/2400);spawn();
-  player.y+=player.vy;player.vy+=.72;if(player.y>=ground-player.h){player.y=ground-player.h;player.vy=0;player.onGround=true}
-  obstacles.forEach(o=>o.x-=speed);fruits.forEach(f=>f.x-=speed);
-  obstacles=obstacles.filter(o=>o.x>-70);fruits=fruits.filter(f=>f.x>-50);
-  const p={x:player.x+9,y:player.y+9,w:42,h:49};
-  obstacles.forEach(o=>{if(!o.hit&&overlap(p,{x:o.x+7,y:ground-43,w:35,h:43})){o.hit=true;lives--;energy=Math.max(0,energy-12);hud();if(lives<=0)end()}});
-  fruits.forEach(f=>{if(!f.hit&&overlap(p,{x:f.x,y:f.y-25,w:30,h:30})){f.hit=true;score+=20;energy=Math.min(100,energy+8);hud()}});
-  fruits=fruits.filter(f=>!f.hit);obstacles=obstacles.filter(o=>!o.hit);
-  if(frame%720===0)showQuiz();
-  if(frame%30===0)hud();
- }
- draw();requestAnimationFrame(tick);
+
+function start() {
+  reset();
+  ["startOv", "endOv", "pauseOv", "quizOv"].forEach(id => show(id, false));
+  state = "run"; sfx.zone();
 }
-function start(){score=0;energy=60;lives=3;distance=0;frame=0;speed=5;obstacles=[];fruits=[];player.y=ground-player.h;player.vy=0;player.onGround=true;quizIndex=0;running=true;paused=false;quizActive=false;$('startOverlay').style.display='none';$('endOverlay').style.display='none';$('quizOverlay').style.display='none';hud();tick()}
-$('startBtn').onclick=start;$('againBtn').onclick=start;$('jumpBtn').onclick=jump;$('quizBtn').onclick=showQuiz;
-window.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump()}});
-canvas.addEventListener('pointerdown',jump);
-hud();draw();
+
+// ---------------- input ----------------
+function jump() {
+  if (state === "menu") return start();
+  if (state !== "run" || tired) return;
+  if (!P.ground) return;
+  if (energy < JUMP_COST) return askQuiz(true);
+  energy -= JUMP_COST; P.vy = -JUMP_V; P.ground = false; sfx.jump();
+  for (let i = 0; i < 6; i++) particles.push({x: P.x, y: GROUND, vx: rnd(-80, 30), vy: rnd(-120, -30), life: .4, c: "#e9f7c8"});
+  hud();
+}
+window.addEventListener("keydown", e => {
+  if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") { e.preventDefault(); if (state === "quiz") return; jump(); }
+  else if (e.code === "KeyP" || e.code === "Escape") togglePause();
+  else if (state === "quiz" && /^Digit[1-4]$/.test(e.code)) { const b = $("answers").children[+e.code.slice(5) - 1]; if (b && !b.disabled) b.click(); }
+  else if (state === "quiz" && e.code === "Enter" && $("quizNext").style.display !== "none") $("nextBtn").click();
+});
+canvas.addEventListener("pointerdown", e => { e.preventDefault(); jump(); });
+$("jumpBtn").addEventListener("pointerdown", e => { e.preventDefault(); jump(); });
+$("startBtn").onclick = start; $("againBtn").onclick = start;
+$("restartBtn").onclick = start;
+$("resumeBtn").onclick = () => togglePause();
+$("pauseBtn").onclick = () => togglePause();
+$("quizBtn").onclick = () => { if (state === "run") askQuiz(false); };
+$("soundBtn").onclick = () => { sound = !sound; $("soundBtn").textContent = sound ? "🔊" : "🔇"; };
+document.addEventListener("visibilitychange", () => { if (document.hidden && state === "run") togglePause(); });
+
+function togglePause() {
+  if (state === "run") { state = "paused"; show("pauseOv", true); }
+  else if (state === "paused") { state = "run"; show("pauseOv", false); last = performance.now(); }
+}
+
+// ---------------- quiz ----------------
+let curQ = null;
+function askQuiz(forced) {
+  if (state !== "run") return;
+  state = "quiz"; quizForced = forced;
+  if (!pools[zone].length) pools[zone] = shuffle(Q[zone]);
+  curQ = pools[zone].pop();
+  $("qZone").textContent = `${ZONES[zone].icon} Zon ${zone + 1}: ${ZONES[zone].name}`;
+  $("qWhy").textContent = forced ? "😮‍💨 Tenaga habis!" : "⚡ Tambah tenaga";
+  $("qText").textContent = curQ.q;
+  $("feedback").textContent = ""; $("feedback").className = "feedback";
+  $("quizNext").style.display = "none";
+  const box = $("answers"); box.innerHTML = "";
+  shuffle(curQ.a.map((txt, i) => ({txt, i}))).forEach((o, k) => {
+    const b = document.createElement("button");
+    b.textContent = `${k + 1}. ${o.txt}`; b.dataset.i = o.i;
+    b.onclick = () => answer(o.i, b);
+    box.appendChild(b);
+  });
+  show("quizOv", true);
+}
+function answer(i, btn) {
+  const ok = i === curQ.c, s = stats[zone];
+  s.all++;
+  [...$("answers").children].forEach(b => { b.disabled = true; if (+b.dataset.i === curQ.c) b.classList.add("ok"); });
+  const fb = $("feedback");
+  if (ok) {
+    s.ok++; streak++;
+    const bonus = streak >= 3 ? 50 : 0;
+    energy = Math.min(MAX_E, energy + QUIZ_GAIN); score += 100 + bonus; sfx.ok();
+    fb.className = "feedback ok";
+    fb.textContent = `✅ Betul! +${QUIZ_GAIN} tenaga${bonus ? ` · 🔥 ${streak} berturut-turut +${bonus}` : ""}. ${curQ.e}`;
+    $("nextBtn").textContent = "TERUSKAN LARI ▶";
+  } else {
+    streak = 0; btn.classList.add("no"); sfx.bad();
+    fb.className = "feedback bad";
+    fb.textContent = `❌ Belum tepat. ${curQ.e}`;
+    $("nextBtn").textContent = energy < JUMP_COST ? "CUBA SOALAN LAIN ▶" : "TERUSKAN LARI ▶";
+  }
+  hud();
+  $("quizNext").style.display = "flex";
+}
+$("nextBtn").onclick = () => {
+  show("quizOv", false); state = "run"; last = performance.now();
+  if (energy < JUMP_COST) askQuiz(true);
+  else tired = 0;
+};
+
+// ---------------- game loop ----------------
+function update(dt) {
+  t += dt;
+  if (inv > 0) inv -= dt;
+  if (banner > 0) banner -= dt;
+
+  // no energy -> runner stops and has to answer a question
+  if (energy <= 0) {
+    energy = 0;
+    tired += dt;
+    if (P.ground && tired > .7) { askQuiz(true); return; }
+  }
+  const moving = energy > 0 || !P.ground;
+  const v = moving ? speed : 0;
+
+  if (moving) {
+    dist += v * dt;
+    energy = Math.max(0, energy - DRAIN * dt);
+    speed = 300 + Math.min(150, dist / 260);
+    P.run += dt * v / 38;
+  }
+
+  // physics
+  P.vy += GRAV * dt; P.y += P.vy * dt;
+  if (P.y >= GROUND) { P.y = GROUND; P.vy = 0; P.ground = true; }
+
+  // zone progress
+  const z = Math.min(4, Math.floor(dist / ZONE_LEN));
+  if (z !== zone) { zone = z; banner = 2.4; score += 200; sfx.zone(); floats.push({x: W / 2, y: 150, txt: "+200 Zon baru!", life: 1.4, c: "#1f8a4c"}); }
+  const toEnd = ZONE_LEN * 5 - dist;
+  if (toEnd < W && flagX === null) flagX = P.x + toEnd;
+
+  // spawning (stop near the finish)
+  if (toEnd > 500) {
+    nextObst -= v * dt; nextGood -= v * dt;
+    if (nextObst <= 0) {
+      const tall = zone >= 2 && Math.random() < .25;
+      obstacles.push({x: W + 40, e: pick(OBST), tall, w: 40, h: tall ? 78 : 42});
+      nextObst = rnd(430, 760) + speed * .4 - zone * 20;
+    }
+    if (nextGood <= 0) {
+      const g = pick(GOOD);
+      goods.push({x: W + 40, y: GROUND - rnd(60, 150), e: g[0], gain: g[1], bob: Math.random() * 6});
+      nextGood = rnd(300, 620);
+    }
+  }
+  obstacles.forEach(o => o.x -= v * dt);
+  goods.forEach(g => g.x -= v * dt);
+  if (flagX !== null) flagX -= v * dt;
+  obstacles = obstacles.filter(o => o.x > -60);
+  goods = goods.filter(g => g.x > -60 && !g.got);
+
+  // collisions
+  const pb = {x: P.x - 18, y: P.y - 66, w: 36, h: 62};
+  const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  for (const o of obstacles) {
+    if (o.done) continue;
+    if (inv <= 0 && hit(pb, {x: o.x + 6, y: GROUND - o.h + 4, w: o.w - 12, h: o.h - 4})) {
+      o.done = true; lives--; inv = 1.3; energy = Math.max(0, energy - 8); sfx.hit(); streak = 0;
+      floats.push({x: P.x, y: P.y - 90, txt: "Aduh! -1 ❤️", life: 1, c: "#c4473a"});
+      for (let i = 0; i < 12; i++) particles.push({x: o.x + 20, y: GROUND - 25, vx: rnd(-200, 200), vy: rnd(-300, -60), life: .6, c: "#ff9c7a"});
+      hud();
+      if (lives <= 0) return finish(false);
+    } else if (!o.passed && o.x + o.w < P.x - 20) { o.passed = true; score += 10; }
+  }
+  for (const g of goods) {
+    if (!g.got && hit(pb, {x: g.x - 18, y: g.y - 18, w: 36, h: 36})) {
+      g.got = true; score += 25; energy = Math.min(MAX_E, energy + g.gain); sfx.coin();
+      floats.push({x: g.x, y: g.y - 20, txt: `+${g.gain}⚡`, life: .8, c: "#2b8a3e"});
+      for (let i = 0; i < 8; i++) particles.push({x: g.x, y: g.y, vx: rnd(-140, 140), vy: rnd(-160, 40), life: .5, c: "#fff59a"});
+    }
+  }
+  if (flagX !== null && flagX <= P.x) return finish(true);
+
+  particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 600 * dt; p.life -= dt; });
+  particles = particles.filter(p => p.life > 0);
+  floats.forEach(f => { f.y -= 40 * dt; f.life -= dt; });
+  floats = floats.filter(f => f.life > 0);
+  if ((t * 10 | 0) % 2 === 0) hud();
+}
+
+function finish(win) {
+  state = "over"; hud();
+  if (win) score += lives * 150;
+  const newBest = score > best;
+  if (newBest) { best = score; try { localStorage.setItem("lariSihatBest", best); } catch (e) {} }
+  $("endEmoji").textContent = win ? "🏆" : "💚";
+  $("endTitle").textContent = win ? "Tahniah, Juara Sihat!" : "Sihat perlukan rehat!";
+  const okAll = stats.reduce((a, s) => a + s.ok, 0), all = stats.reduce((a, s) => a + s.all, 0);
+  $("endText").innerHTML = `${win ? `Anda tamatkan kelima-lima zon! Bonus nyawa +${lives * 150}.<br>` : `Anda sampai ke Zon ${zone + 1}. Cuba lagi!<br>`}` +
+    `Skor: <b>${score}</b>${newBest ? " · 🎉 Rekod baru!" : ` · Rekod: ${best}`}<br>Jawapan betul: <b>${okAll}/${all}</b>`;
+  $("summary").innerHTML = "<b>Apa yang anda pelajari:</b>" + ZONES.map((z, i) =>
+    `<div><span>${z.icon} ${z.name}</span><span>${stats[i].all ? `${stats[i].ok}/${stats[i].all} betul` : "–"}</span></div>`).join("");
+  sfx[win ? "ok" : "bad"]();
+  setTimeout(() => show("endOv", true), 400);
+}
+
+// ---------------- drawing ----------------
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+function cloud(x, y, s) {
+  ctx.fillStyle = "#ffffffc4"; ctx.beginPath();
+  ctx.arc(x, y, 18 * s, 0, 7); ctx.arc(x + 22 * s, y - 9 * s, 23 * s, 0, 7); ctx.arc(x + 47 * s, y, 17 * s, 0, 7); ctx.fill();
+}
+function draw() {
+  const Z = ZONES[zone], cam = dist;
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, Z.sky[0]); sky.addColorStop(1, Z.sky[1]);
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#fff6b8"; ctx.beginPath(); ctx.arc(820, 80, 38, 0, 7); ctx.fill();
+  const wrap = (x, m) => ((x % m) + m) % m;
+  cloud(wrap(150 - cam * .05, 1200) - 120, 70, .9); cloud(wrap(600 - cam * .04, 1200) - 120, 115, .7); cloud(wrap(950 - cam * .06, 1200) - 120, 55, .8);
+  // hills
+  ctx.fillStyle = Z.hill; ctx.beginPath(); ctx.moveTo(0, GROUND);
+  for (let x = 0; x <= W; x += 20) ctx.lineTo(x, 300 - 45 * Math.sin((x + cam * .15) / 140) - 20 * Math.sin((x + cam * .15) / 53));
+  ctx.lineTo(W, GROUND); ctx.fill();
+  // trees
+  for (let i = 0; i < 9; i++) {
+    const x = wrap(i * 150 - cam * .4, 1350) - 100;
+    ctx.fillStyle = "#7a5a3c"; ctx.fillRect(x - 5, 300, 10, 50);
+    ctx.fillStyle = Z.tree; ctx.beginPath(); ctx.arc(x, 295, 30, 0, 7); ctx.arc(x - 18, 310, 20, 0, 7); ctx.arc(x + 18, 310, 20, 0, 7); ctx.fill();
+  }
+  // ground
+  ctx.fillStyle = "#79c97f"; ctx.fillRect(0, GROUND, W, H - GROUND);
+  ctx.fillStyle = "#4f9d62"; ctx.fillRect(0, GROUND, W, 7);
+  ctx.fillStyle = "#d4ef9c";
+  for (let i = 0; i < 16; i++) ctx.fillRect(wrap(i * 70 - cam, 1120) - 80, GROUND + 30, 26, 4);
+  // zone markers
+  for (let k = 1; k < 5; k++) {
+    const x = P.x + k * ZONE_LEN - dist;
+    if (x > -60 && x < W + 60) {
+      ctx.fillStyle = "#fff"; rr(x - 4, GROUND - 80, 8, 80, 3); ctx.fill();
+      ctx.fillStyle = ZONES[k].tree; rr(x - 60, GROUND - 112, 120, 34, 10); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = "bold 16px system-ui"; ctx.textAlign = "center"; ctx.fillText(`ZON ${k + 1} ${ZONES[k].icon}`, x, GROUND - 89);
+    }
+  }
+  // finish flag
+  if (flagX !== null) {
+    ctx.fillStyle = "#555"; ctx.fillRect(flagX, GROUND - 130, 6, 130);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 6; c++) { ctx.fillStyle = (r + c) % 2 ? "#222" : "#fff"; ctx.fillRect(flagX + 6 + c * 12, GROUND - 130 + r * 12, 12, 12); }
+    ctx.font = "bold 18px system-ui"; ctx.fillStyle = "#14423a"; ctx.textAlign = "center"; ctx.fillText("TAMAT 🏁", flagX + 40, GROUND - 140);
+  }
+  // goods
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  goods.forEach(g => {
+    const y = g.y + Math.sin(t * 4 + g.bob) * 5;
+    ctx.fillStyle = "#ffffff70"; ctx.beginPath(); ctx.arc(g.x, y, 22, 0, 7); ctx.fill();
+    ctx.font = "32px serif"; ctx.fillText(g.e, g.x, y + 2);
+  });
+  // obstacles
+  obstacles.forEach(o => {
+    ctx.fillStyle = "#2f6a4a40"; ctx.beginPath(); ctx.ellipse(o.x + o.w / 2, GROUND + 3, 22, 5, 0, 0, 7); ctx.fill();
+    ctx.font = "42px serif";
+    if (o.tall) { ctx.fillText(o.e, o.x + o.w / 2, GROUND - 22); ctx.fillText(o.e, o.x + o.w / 2, GROUND - 60); }
+    else ctx.fillText(o.e, o.x + o.w / 2, GROUND - 22);
+    if (o.done) { ctx.strokeStyle = "#c4473a"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(o.x, GROUND - 40); ctx.lineTo(o.x + o.w, GROUND - 5); ctx.stroke(); }
+  });
+  drawPlayer();
+  particles.forEach(p => { ctx.globalAlpha = Math.max(0, p.life * 2); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 7); ctx.fill(); });
+  ctx.globalAlpha = 1;
+  floats.forEach(f => { ctx.globalAlpha = Math.min(1, f.life * 2); ctx.font = "bold 22px system-ui"; ctx.fillStyle = f.c; ctx.fillText(f.txt, f.x, f.y); });
+  ctx.globalAlpha = 1;
+  // tired hint
+  if (energy <= 0 && state === "run") {
+    ctx.fillStyle = "#0b302dcc"; rr(W / 2 - 220, 150, 440, 60, 16); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.font = "bold 22px system-ui"; ctx.fillText("😮‍💨 Tenaga habis! Jawab soalan…", W / 2, 181);
+  }
+  // zone banner
+  if (banner > 0 && state !== "menu") {
+    const a = Math.min(1, banner, (2.4 - banner) * 3);
+    ctx.globalAlpha = a; ctx.fillStyle = "#14423ae6"; rr(W / 2 - 250, 40, 500, 82, 20); ctx.fill();
+    ctx.fillStyle = "#ffcf3f"; ctx.font = "bold 18px system-ui"; ctx.fillText(`ZON ${zone + 1} / 5`, W / 2, 64);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 28px system-ui"; ctx.fillText(`${ZONES[zone].icon} ${ZONES[zone].name}`, W / 2, 98);
+    ctx.globalAlpha = 1;
+  }
+  ctx.textBaseline = "alphabetic";
+}
+function drawPlayer() {
+  const x = P.x, y = P.y, moving = energy > 0 && state === "run";
+  if (inv > 0 && (t * 12 | 0) % 2) return;
+  ctx.fillStyle = "#2f6a4a55"; ctx.beginPath(); ctx.ellipse(x, GROUND + 4, 26, 6, 0, 0, 7); ctx.fill();
+  const sw = P.ground && moving ? Math.sin(P.run) : P.ground ? 0 : .6;
+  ctx.lineCap = "round"; ctx.lineWidth = 9;
+  // legs
+  ctx.strokeStyle = "#2c3e66";
+  ctx.beginPath(); ctx.moveTo(x - 4, y - 26); ctx.lineTo(x - 4 + sw * 14, y - 4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + 4, y - 26); ctx.lineTo(x + 4 - sw * 14, y - 4); ctx.stroke();
+  ctx.fillStyle = "#ff6b57";
+  ctx.beginPath(); ctx.ellipse(x - 4 + sw * 14 + 4, y - 3, 8, 5, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x + 4 - sw * 14 + 4, y - 3, 8, 5, 0, 0, 7); ctx.fill();
+  // body
+  ctx.fillStyle = "#2fa66a"; rr(x - 15, y - 58, 30, 36, 10); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = "bold 13px system-ui"; ctx.textAlign = "center"; ctx.fillText("3", x, y - 36);
+  // arms
+  ctx.strokeStyle = "#f2c19a"; ctx.lineWidth = 7;
+  ctx.beginPath(); ctx.moveTo(x - 10, y - 52); ctx.lineTo(x - 10 - sw * 12, y - 34); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + 10, y - 52); ctx.lineTo(x + 10 + sw * 12, y - 34); ctx.stroke();
+  // head
+  ctx.fillStyle = "#f2c19a"; ctx.beginPath(); ctx.arc(x + 2, y - 72, 15, 0, 7); ctx.fill();
+  ctx.fillStyle = "#3b2a20"; ctx.beginPath(); ctx.arc(x + 2, y - 76, 15, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = "#14423a"; ctx.beginPath(); ctx.arc(x + 8, y - 72, 2.2, 0, 7); ctx.fill();
+  ctx.strokeStyle = "#a0543e"; ctx.lineWidth = 2; ctx.beginPath();
+  if (energy > 0) ctx.arc(x + 8, y - 66, 4, .2, Math.PI - .4); else ctx.arc(x + 8, y - 62, 4, Math.PI + .4, -.4);
+  ctx.stroke();
+  if (energy <= 0) { ctx.fillStyle = "#6ec6ff"; ctx.beginPath(); ctx.arc(x - 12, y - 80 + (t * 30 % 12), 3, 0, 7); ctx.fill(); }
+}
+
+function loop(now) {
+  const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
+  if (state === "run") update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+$("bestText").textContent = best ? `🏅 Rekod terbaik anda: ${best}` : "Papan kekunci: SPACE / ↑ untuk lompat · P untuk rehat · 1–4 untuk jawab";
+reset();
+requestAnimationFrame(loop);
 })();
 </script>
 </body>

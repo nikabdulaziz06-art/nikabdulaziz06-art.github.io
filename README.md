@@ -6,10 +6,12 @@ Topik ESD: **Pemakanan sihat dan gaya hidup aktif**.
 **Main sekarang:** https://nikabdulaziz06-art.github.io
 
 ## Cara bermain
-- Pemain berlari merentasi 5 zon. Untuk bergerak, dia perlukan **tenaga** ⚡.
-- Tenaga berkurang semasa berlari dan melompat. Bila tenaga habis, pemain berhenti dan perlu **jawab soalan**. Jawapan betul = +40 tenaga.
-- Lompat untuk elak makanan ringan 🍩🥤 (langgar = hilang nyawa). Kutip makanan sihat 🍎🥦 untuk skor dan tenaga.
-- Kawalan: SPACE / ↑ / sentuh skrin / butang LOMPAT · P = rehat · 1–4 = pilih jawapan.
+- Pilih avatar comel: 🐰 Arnab, 🐱 Kucing atau 🐼 Panda.
+- Untuk bergerak, avatar perlukan **tenaga** ⚡, dan tenaga **hanya** datang daripada menjawab soalan (jawapan betul = +40). Permainan bermula dengan 0 tenaga.
+- Tenaga berkurang semasa berlari dan melompat. Bila habis, avatar berhenti dan soalan baru muncul.
+- Lompat melepasi dinding tanah 🧱 dan tunggul. Untuk pokok tinggi 🌳, tekan LOMPAT **2 kali** (lompat berganda). Langgar = hilang nyawa.
+- Kutip makanan sihat 🍎🥦 untuk skor tambahan.
+- Kawalan: SPACE / ↑ / sentuh skrin / butang LOMPAT (2 kali untuk lompat tinggi) · P = rehat · 1–4 = pilih jawapan.
 
 ## Zon dan topik soalan
 1. 🧺 Isih Makanan (kumpulan makanan & Piramid Makanan)

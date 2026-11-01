@@ -61,11 +61,18 @@ button.sun{background:var(--sun);color:#3b2e00;box-shadow:0 4px 0 #d3a414}
 #jumpBtn{min-width:130px;font-size:17px;padding:14px 18px}
 .summary{text-align:left;background:var(--mint);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13.5px;line-height:1.5}
 .summary div{display:flex;justify-content:space-between;gap:8px}
+.avatars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.av{background:#fff;border:3px solid var(--line);border-radius:16px;padding:6px 4px 10px;cursor:pointer;color:var(--ink);box-shadow:none;font-weight:900}
+.av:active{transform:none;box-shadow:none}
+.av canvas{width:100%;max-width:120px;height:auto;margin:auto}
+.av.sel{border-color:#f0b400;background:#fff8d6;box-shadow:0 0 0 4px #ffcf3f55}
+.av span{display:block;font-size:15px}.av small{display:block;font-weight:700;color:var(--muted);font-size:11.5px}
 footer{text-align:center;color:var(--muted);font-size:12px;margin-top:14px;line-height:1.5}
 @media(max-width:640px){
   .hud{grid-template-columns:1fr 1fr}
   .answers{grid-template-columns:1fr}
   .how{grid-template-columns:1fr}
+  .avatars{gap:6px}
   .dialog{padding:15px}
   .controls .actions{width:100%}
   .controls .actions button{flex:1}
@@ -91,13 +98,18 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:14px;line-
 
   <div class="overlay show" id="startOv">
     <div class="dialog">
-      <div class="big">🏃‍♂️⚡🍎</div>
       <h1>Lari Sihat: Misi Tenaga</h1>
-      <p>Bantu Sihat berlari merentasi <b>5 zon</b>. Untuk bergerak, dia perlukan <b>tenaga</b>. Bila tenaga habis, dia berhenti, dan anda perlu <b>jawab soalan</b> tentang pemakanan sihat dan gaya hidup aktif untuk isi semula tenaga!</p>
+      <p style="margin:4px 0">Pilih avatar comel anda:</p>
+      <div class="avatars" id="avatars">
+        <button class="av" data-a="0"><canvas width="160" height="150"></canvas><span>Arnab</span><small>Si Lompat Tinggi</small></button>
+        <button class="av" data-a="1"><canvas width="160" height="150"></canvas><span>Kucing</span><small>Si Lincah</small></button>
+        <button class="av" data-a="2"><canvas width="160" height="150"></canvas><span>Panda</span><small>Si Comel</small></button>
+      </div>
+      <p>Untuk bergerak, avatar anda perlukan <b>tenaga ⚡</b>, dan tenaga hanya datang daripada <b>menjawab soalan</b> tentang pemakanan sihat &amp; gaya hidup aktif. Lalui <b>5 zon</b> hingga ke garisan TAMAT!</p>
       <div class="how">
-        <div><b>⬆️</b>Lompat: tekan SPACE / ↑, sentuh skrin, atau butang LOMPAT</div>
-        <div><b>🍩🥤</b>Elak makanan ringan. Langgar = hilang nyawa</div>
-        <div><b>🍎🥦</b>Kutip makanan sihat untuk skor &amp; tenaga tambahan</div>
+        <div><b>⬆️</b>Lompat: SPACE / ↑, sentuh skrin atau butang LOMPAT</div>
+        <div><b>⏫</b>Tekan <strong>2 kali</strong> untuk lompat lebih tinggi melepasi pokok</div>
+        <div><b>🧱🌳</b>Elak dinding tanah &amp; pokok. Langgar = hilang nyawa</div>
       </div>
       <button class="sun" id="startBtn">MULA BERMAIN ▶</button>
       <p style="font-size:12px;margin-bottom:0" id="bestText"></p>
@@ -128,13 +140,13 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:14px;line-
       <h1 id="endTitle">Tahniah!</h1>
       <p id="endText"></p>
       <div class="summary" id="summary"></div>
-      <div class="row"><button class="sun" id="againBtn">MAIN LAGI ↻</button></div>
+      <div class="row"><button class="sun" id="againBtn">MAIN LAGI ↻</button><button class="soft" id="avatarBtn">TUKAR AVATAR 🐰</button></div>
     </div>
   </div>
 </div>
 
 <div class="controls">
-  <div class="hint"><b>Tip:</b> Tenaga berkurang semasa berlari dan melompat. Jawapan betul = <b>+40 ⚡</b>. Anda juga boleh jawab soalan bila-bila masa untuk tambah tenaga.</div>
+  <div class="hint"><b>Tip:</b> Tenaga berkurang semasa berlari dan melompat. Jawapan betul = <b>+40 ⚡</b>. Tekan LOMPAT <b>2 kali</b> untuk lompatan tinggi. Tekan KUIZ bila-bila masa untuk tambah tenaga.</div>
   <div class="actions">
     <button class="soft" id="soundBtn" aria-label="Bunyi">🔊</button>
     <button class="soft" id="pauseBtn" aria-label="Rehat">⏸️</button>
@@ -229,18 +241,27 @@ const Q = [
 const ZONE_LEN = 7600;               // px of distance per zone
 const MAX_E = 100, DRAIN = 3.4, JUMP_COST = 5, QUIZ_GAIN = 40;
 const GRAV = 2300, JUMP_V = 800;
-const OBST = ["🍩","🍔","🍟","🥤","🍭","🧁"];
-const GOOD = [["🍎",4],["🍌",4],["🥦",5],["🥕",4],["🐟",5],["🥛",4],["💧",6]];
+const GOOD = ["🍎","🍌","🥦","🥕","🐟","🥛","💧"];
+const DJUMP_V = 760;
+// obstacle types: w,h = hitbox; tall ones need a double jump
+const OB = {
+  wall:  {w: 46, h: 52},
+  wall2: {w: 50, h: 86},
+  stump: {w: 44, h: 62},
+  tree:  {w: 64, h: 170},
+};
+const AVATARS = ["Arnab", "Kucing", "Panda"];
 
 // ---------------- state ----------------
 let state = "menu", score = 0, energy = 60, lives = 3, dist = 0, speed = 300, zone = 0, t = 0;
 let obstacles = [], goods = [], particles = [], floats = [];
 let nextObst = 700, nextGood = 420, inv = 0, banner = 0, tired = 0, quizForced = false;
-let pools = [], stats = [], streak = 0, sound = true, last = 0, flagX = null;
+let pools = [], stats = [], streak = 0, sound = true, last = 0, flagX = null, avatar = 0, jumps = 0, treeTip = false;
 const P = {x:150, y:GROUND, vy:0, ground:true, run:0};
 
 let best = 0;
-try { best = +localStorage.getItem("lariSihatBest") || 0; } catch (e) {}
+try { best = +localStorage.getItem("lariSihatBest") || 0; avatar = +localStorage.getItem("lariSihatAvatar") || 0; } catch (e) {}
+if (!(avatar >= 0 && avatar < 3)) avatar = 0;
 
 // ---------------- sound ----------------
 let ac = null;
@@ -257,6 +278,7 @@ function beep(f, d = .1, type = "sine", v = .08, slide = 0) {
 }
 const sfx = {
   jump: () => beep(420, .16, "square", .05, 760),
+  jump2: () => beep(620, .18, "square", .05, 1200),
   coin: () => { beep(880, .08, "triangle", .07); setTimeout(() => beep(1320, .1, "triangle", .07), 70); },
   hit:  () => beep(180, .3, "sawtooth", .08, 70),
   ok:   () => [523, 659, 784].forEach((f, i) => setTimeout(() => beep(f, .14, "triangle", .08), i * 90)),
@@ -282,7 +304,7 @@ function hud() {
 }
 
 function reset() {
-  score = 0; energy = 60; lives = 3; dist = 0; speed = 300; zone = 0; t = 0; streak = 0;
+  score = 0; energy = 0; lives = 3; jumps = 0; treeTip = false; dist = 0; speed = 300; zone = 0; t = 0; streak = 0;
   obstacles = []; goods = []; particles = []; floats = [];
   nextObst = 900; nextGood = 520; inv = 0; banner = 2.4; tired = 0; flagX = null;
   P.y = GROUND; P.vy = 0; P.ground = true;
@@ -295,16 +317,19 @@ function start() {
   reset();
   ["startOv", "endOv", "pauseOv", "quizOv"].forEach(id => show(id, false));
   state = "run"; sfx.zone();
+  askQuiz(true, true);
 }
 
 // ---------------- input ----------------
 function jump() {
-  if (state === "menu") return start();
+  if (state === "menu") return;
   if (state !== "run" || tired) return;
-  if (!P.ground) return;
-  if (energy < JUMP_COST) return askQuiz(true);
-  energy -= JUMP_COST; P.vy = -JUMP_V; P.ground = false; sfx.jump();
-  for (let i = 0; i < 6; i++) particles.push({x: P.x, y: GROUND, vx: rnd(-80, 30), vy: rnd(-120, -30), life: .4, c: "#e9f7c8"});
+  if (!P.ground && jumps >= 2) return;
+  if (energy < JUMP_COST) { if (P.ground) askQuiz(true); return; }
+  energy -= JUMP_COST;
+  if (P.ground) { P.vy = -JUMP_V; P.ground = false; jumps = 1; sfx.jump(); }
+  else { P.vy = -DJUMP_V; jumps = 2; sfx.jump2(); }
+  for (let i = 0; i < 6; i++) particles.push({x: P.x, y: jumps === 1 ? GROUND : P.y, vx: rnd(-80, 30), vy: rnd(-120, -30), life: .4, c: jumps === 1 ? "#e9f7c8" : "#fff59a"});
   hud();
 }
 window.addEventListener("keydown", e => {
@@ -316,6 +341,7 @@ window.addEventListener("keydown", e => {
 canvas.addEventListener("pointerdown", e => { e.preventDefault(); jump(); });
 $("jumpBtn").addEventListener("pointerdown", e => { e.preventDefault(); jump(); });
 $("startBtn").onclick = start; $("againBtn").onclick = start;
+$("avatarBtn").onclick = () => { state = "menu"; show("endOv", false); show("startOv", true); };
 $("restartBtn").onclick = start;
 $("resumeBtn").onclick = () => togglePause();
 $("pauseBtn").onclick = () => togglePause();
@@ -330,13 +356,13 @@ function togglePause() {
 
 // ---------------- quiz ----------------
 let curQ = null;
-function askQuiz(forced) {
+function askQuiz(forced, first) {
   if (state !== "run") return;
   state = "quiz"; quizForced = forced;
   if (!pools[zone].length) pools[zone] = shuffle(Q[zone]);
   curQ = pools[zone].pop();
   $("qZone").textContent = `${ZONES[zone].icon} Zon ${zone + 1}: ${ZONES[zone].name}`;
-  $("qWhy").textContent = forced ? "😮‍💨 Tenaga habis!" : "⚡ Tambah tenaga";
+  $("qWhy").textContent = first ? "⚡ Jawab untuk dapat tenaga & mula berlari!" : forced ? "😮‍💨 Tenaga habis!" : "⚡ Tambah tenaga";
   $("qText").textContent = curQ.q;
   $("feedback").textContent = ""; $("feedback").className = "feedback";
   $("quizNext").style.display = "none";
@@ -360,7 +386,7 @@ function answer(i, btn) {
     energy = Math.min(MAX_E, energy + QUIZ_GAIN); score += 100 + bonus; sfx.ok();
     fb.className = "feedback ok";
     fb.textContent = `✅ Betul! +${QUIZ_GAIN} tenaga${bonus ? ` · 🔥 ${streak} berturut-turut +${bonus}` : ""}. ${curQ.e}`;
-    $("nextBtn").textContent = "TERUSKAN LARI ▶";
+    $("nextBtn").textContent = "LARI ▶";
   } else {
     streak = 0; btn.classList.add("no"); sfx.bad();
     fb.className = "feedback bad";
@@ -400,7 +426,7 @@ function update(dt) {
 
   // physics
   P.vy += GRAV * dt; P.y += P.vy * dt;
-  if (P.y >= GROUND) { P.y = GROUND; P.vy = 0; P.ground = true; }
+  if (P.y >= GROUND) { P.y = GROUND; P.vy = 0; P.ground = true; jumps = 0; }
 
   // zone progress
   const z = Math.min(4, Math.floor(dist / ZONE_LEN));
@@ -412,14 +438,15 @@ function update(dt) {
   if (toEnd > 500) {
     nextObst -= v * dt; nextGood -= v * dt;
     if (nextObst <= 0) {
-      const tall = zone >= 2 && Math.random() < .25;
-      obstacles.push({x: W + 40, e: pick(OBST), tall, w: 40, h: tall ? 78 : 42});
-      nextObst = rnd(430, 760) + speed * .4 - zone * 20;
+      const r = Math.random();
+      const pTree = [.12, .2, .26, .3, .34][zone], pHigh = [.1, .18, .22, .24, .26][zone], pStump = .25;
+      const kind = r < pTree ? "tree" : r < pTree + pHigh ? "wall2" : r < pTree + pHigh + pStump ? "stump" : "wall";
+      obstacles.push({x: W + 40, kind, w: OB[kind].w, h: OB[kind].h, seed: Math.random()});
+      nextObst = rnd(460, 780) + speed * .45 - zone * 15 + (kind === "tree" ? 140 : 0);
     }
     if (nextGood <= 0) {
-      const g = pick(GOOD);
-      goods.push({x: W + 40, y: GROUND - rnd(60, 150), e: g[0], gain: g[1], bob: Math.random() * 6});
-      nextGood = rnd(300, 620);
+      goods.push({x: W + 40, y: GROUND - rnd(70, 230), e: pick(GOOD), bob: Math.random() * 6});
+      nextGood = rnd(320, 640);
     }
   }
   obstacles.forEach(o => o.x -= v * dt);
@@ -433,18 +460,19 @@ function update(dt) {
   const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
   for (const o of obstacles) {
     if (o.done) continue;
-    if (inv <= 0 && hit(pb, {x: o.x + 6, y: GROUND - o.h + 4, w: o.w - 12, h: o.h - 4})) {
+    if (o.kind === "tree" && !treeTip && o.x < W - 100) { treeTip = true; floats.push({x: W / 2, y: 150, txt: "🌳 Pokok tinggi! Tekan LOMPAT 2 kali ⏫", life: 2.4, c: "#14423a"}); }
+    if (inv <= 0 && hit(pb, {x: o.x + 6, y: GROUND - o.h + 6, w: o.w - 12, h: o.h - 6})) {
       o.done = true; lives--; inv = 1.3; energy = Math.max(0, energy - 8); sfx.hit(); streak = 0;
-      floats.push({x: P.x, y: P.y - 90, txt: "Aduh! -1 ❤️", life: 1, c: "#c4473a"});
-      for (let i = 0; i < 12; i++) particles.push({x: o.x + 20, y: GROUND - 25, vx: rnd(-200, 200), vy: rnd(-300, -60), life: .6, c: "#ff9c7a"});
+      floats.push({x: P.x, y: P.y - 100, txt: "Aduh! -1 ❤️", life: 1, c: "#c4473a"});
+      for (let i = 0; i < 12; i++) particles.push({x: o.x + o.w / 2, y: GROUND - o.h / 2, vx: rnd(-200, 200), vy: rnd(-300, -60), life: .6, c: "#ff9c7a"});
       hud();
       if (lives <= 0) return finish(false);
     } else if (!o.passed && o.x + o.w < P.x - 20) { o.passed = true; score += 10; }
   }
   for (const g of goods) {
     if (!g.got && hit(pb, {x: g.x - 18, y: g.y - 18, w: 36, h: 36})) {
-      g.got = true; score += 25; energy = Math.min(MAX_E, energy + g.gain); sfx.coin();
-      floats.push({x: g.x, y: g.y - 20, txt: `+${g.gain}⚡`, life: .8, c: "#2b8a3e"});
+      g.got = true; score += 25; sfx.coin();
+      floats.push({x: g.x, y: g.y - 20, txt: "+25", life: .8, c: "#2b8a3e"});
       for (let i = 0; i < 8; i++) particles.push({x: g.x, y: g.y, vx: rnd(-140, 140), vy: rnd(-160, 40), life: .5, c: "#fff59a"});
     }
   }
@@ -463,7 +491,7 @@ function finish(win) {
   const newBest = score > best;
   if (newBest) { best = score; try { localStorage.setItem("lariSihatBest", best); } catch (e) {} }
   $("endEmoji").textContent = win ? "🏆" : "💚";
-  $("endTitle").textContent = win ? "Tahniah, Juara Sihat!" : "Sihat perlukan rehat!";
+  $("endTitle").textContent = win ? `Tahniah, ${AVATARS[avatar]} Juara Sihat!` : `${AVATARS[avatar]} perlukan rehat!`;
   const okAll = stats.reduce((a, s) => a + s.ok, 0), all = stats.reduce((a, s) => a + s.all, 0);
   $("endText").innerHTML = `${win ? `Anda tamatkan kelima-lima zon! Bonus nyawa +${lives * 150}.<br>` : `Anda sampai ke Zon ${zone + 1}. Cuba lagi!<br>`}` +
     `Skor: <b>${score}</b>${newBest ? " · 🎉 Rekod baru!" : ` · Rekod: ${best}`}<br>Jawapan betul: <b>${okAll}/${all}</b>`;
@@ -494,8 +522,10 @@ function draw() {
   // trees
   for (let i = 0; i < 9; i++) {
     const x = wrap(i * 150 - cam * .4, 1350) - 100;
+    ctx.globalAlpha = .55;
     ctx.fillStyle = "#7a5a3c"; ctx.fillRect(x - 5, 300, 10, 50);
     ctx.fillStyle = Z.tree; ctx.beginPath(); ctx.arc(x, 295, 30, 0, 7); ctx.arc(x - 18, 310, 20, 0, 7); ctx.arc(x + 18, 310, 20, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
   }
   // ground
   ctx.fillStyle = "#79c97f"; ctx.fillRect(0, GROUND, W, H - GROUND);
@@ -525,13 +555,7 @@ function draw() {
     ctx.font = "32px serif"; ctx.fillText(g.e, g.x, y + 2);
   });
   // obstacles
-  obstacles.forEach(o => {
-    ctx.fillStyle = "#2f6a4a40"; ctx.beginPath(); ctx.ellipse(o.x + o.w / 2, GROUND + 3, 22, 5, 0, 0, 7); ctx.fill();
-    ctx.font = "42px serif";
-    if (o.tall) { ctx.fillText(o.e, o.x + o.w / 2, GROUND - 22); ctx.fillText(o.e, o.x + o.w / 2, GROUND - 60); }
-    else ctx.fillText(o.e, o.x + o.w / 2, GROUND - 22);
-    if (o.done) { ctx.strokeStyle = "#c4473a"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(o.x, GROUND - 40); ctx.lineTo(o.x + o.w, GROUND - 5); ctx.stroke(); }
-  });
+  obstacles.forEach(drawObstacle);
   drawPlayer();
   particles.forEach(p => { ctx.globalAlpha = Math.max(0, p.life * 2); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 7); ctx.fill(); });
   ctx.globalAlpha = 1;
@@ -552,40 +576,142 @@ function draw() {
   }
   ctx.textBaseline = "alphabetic";
 }
-function drawPlayer() {
-  const x = P.x, y = P.y, moving = energy > 0 && state === "run";
-  if (inv > 0 && (t * 12 | 0) % 2) return;
-  ctx.fillStyle = "#2f6a4a55"; ctx.beginPath(); ctx.ellipse(x, GROUND + 4, 26, 6, 0, 0, 7); ctx.fill();
-  const sw = P.ground && moving ? Math.sin(P.run) : P.ground ? 0 : .6;
-  ctx.lineCap = "round"; ctx.lineWidth = 9;
-  // legs
-  ctx.strokeStyle = "#2c3e66";
-  ctx.beginPath(); ctx.moveTo(x - 4, y - 26); ctx.lineTo(x - 4 + sw * 14, y - 4); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x + 4, y - 26); ctx.lineTo(x + 4 - sw * 14, y - 4); ctx.stroke();
-  ctx.fillStyle = "#ff6b57";
-  ctx.beginPath(); ctx.ellipse(x - 4 + sw * 14 + 4, y - 3, 8, 5, 0, 0, 7); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(x + 4 - sw * 14 + 4, y - 3, 8, 5, 0, 0, 7); ctx.fill();
+function drawObstacle(o) {
+  const x = o.x, w = o.w, h = o.h, top = GROUND - h;
+  ctx.globalAlpha = o.done ? .55 : 1;
+  ctx.fillStyle = "#2f6a4a40"; ctx.beginPath(); ctx.ellipse(x + w / 2, GROUND + 3, w / 2 + 6, 6, 0, 0, 7); ctx.fill();
+  if (o.kind === "wall" || o.kind === "wall2") {
+    // earth wall: soil layers with a grassy top and pebbles
+    ctx.fillStyle = "#8a5a35"; rr(x, top, w, h, 6); ctx.fill();
+    ctx.fillStyle = "#a36d42";
+    for (let yy = top + 16; yy < GROUND - 6; yy += 18) { rr(x + 4, yy, w - 8, 7, 3); ctx.fill(); }
+    ctx.fillStyle = "#6e4426";
+    for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(x + 8 + ((o.seed * 97 + k * 23) % (w - 16)), top + 12 + ((o.seed * 53 + k * 31) % (h - 20)), 3, 0, 7); ctx.fill(); }
+    ctx.fillStyle = "#56b35f"; rr(x - 3, top - 4, w + 6, 12, 6); ctx.fill();
+    ctx.fillStyle = "#7fd36d"; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(x + 4 + k * (w / 4), top - 2); ctx.lineTo(x + 9 + k * (w / 4), top - 11); ctx.lineTo(x + 14 + k * (w / 4), top - 2); ctx.fill(); }
+  } else if (o.kind === "stump") {
+    ctx.fillStyle = "#7a4e2c"; rr(x + 4, top + 8, w - 8, h - 8, 8); ctx.fill();
+    ctx.fillStyle = "#d9a86a"; ctx.beginPath(); ctx.ellipse(x + w / 2, top + 9, w / 2 - 4, 9, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = "#a9773f"; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(x + w / 2, top + 9, w / 4, 4.5, 0, 0, 7); ctx.stroke();
+    ctx.fillStyle = "#56b35f"; ctx.beginPath(); ctx.arc(x + 6, GROUND - 6, 8, 0, 7); ctx.arc(x + w - 6, GROUND - 5, 7, 0, 7); ctx.fill();
+  } else {
+    // tall tree: needs a double jump
+    ctx.strokeStyle = "#1d5a36"; ctx.lineWidth = 4;
+    ctx.fillStyle = "#6b4223"; rr(x + w / 2 - 12, top + 70, 24, h - 70, 5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#23804a"; ctx.beginPath();
+    ctx.arc(x + w / 2, top + 34, 34, 0, 7); ctx.arc(x + w / 2 - 20, top + 64, 26, 0, 7); ctx.arc(x + w / 2 + 20, top + 64, 26, 0, 7); ctx.stroke(); ctx.fill();
+    ctx.fillStyle = "#ffcf3f"; rr(x + w / 2 - 20, top - 30, 40, 22, 8); ctx.fill();
+    ctx.fillStyle = "#3b2e00"; ctx.font = "bold 14px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("2x ⬆", x + w / 2, top - 19);
+    ctx.fillStyle = "#47b06a"; ctx.beginPath(); ctx.arc(x + w / 2 - 8, top + 26, 16, 0, 7); ctx.fill();
+    ctx.fillStyle = "#ff5a5a"; [[-14, 40], [16, 52], [-2, 70]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(x + w / 2 + dx, top + dy, 5, 0, 7); ctx.fill(); });
+  }
+  ctx.globalAlpha = 1;
+}
+
+// cute animal avatars, drawn standing on (x, y). sw = leg swing, mood: 1 happy, 0 tired
+function drawAnimal(c, type, x, y, sw, mood, tt) {
+  const C = [
+    {body: "#ffffff", line: "#e7d8de", ear: "#ffffff", inner: "#ffb3c7", cheek: "#ffb3c7", feet: "#f4e6ea"},   // rabbit
+    {body: "#ffb35c", line: "#e48f33", ear: "#ffb35c", inner: "#ffd2a8", cheek: "#ff8f8f", feet: "#fff1df"},   // cat
+    {body: "#ffffff", line: "#dcdcdc", ear: "#2b2b2b", inner: "#2b2b2b", cheek: "#ffb3c7", feet: "#2b2b2b"},   // panda
+  ][type];
+  c.save(); c.lineCap = "round"; c.lineJoin = "round";
+  // tail
+  if (type === 1) { c.strokeStyle = C.line; c.lineWidth = 8; c.beginPath(); c.moveTo(x - 18, y - 26); c.quadraticCurveTo(x - 40, y - 40 + Math.sin(tt * 8) * 6, x - 34, y - 58); c.stroke(); }
+  if (type === 0) { c.fillStyle = "#fff"; c.strokeStyle = C.line; c.lineWidth = 2; c.beginPath(); c.arc(x - 20, y - 26, 8, 0, 7); c.fill(); c.stroke(); }
+  // feet
+  c.fillStyle = C.feet;
+  c.beginPath(); c.ellipse(x - 8 + sw * 9, y - 5, 9, 6, 0, 0, 7); c.fill();
+  c.beginPath(); c.ellipse(x + 9 - sw * 9, y - 5, 9, 6, 0, 0, 7); c.fill();
   // body
-  ctx.fillStyle = "#2fa66a"; rr(x - 15, y - 58, 30, 36, 10); ctx.fill();
-  ctx.fillStyle = "#fff"; ctx.font = "bold 13px system-ui"; ctx.textAlign = "center"; ctx.fillText("3", x, y - 36);
-  // arms
-  ctx.strokeStyle = "#f2c19a"; ctx.lineWidth = 7;
-  ctx.beginPath(); ctx.moveTo(x - 10, y - 52); ctx.lineTo(x - 10 - sw * 12, y - 34); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x + 10, y - 52); ctx.lineTo(x + 10 + sw * 12, y - 34); ctx.stroke();
+  c.fillStyle = type === 2 ? "#2b2b2b" : C.body; c.strokeStyle = C.line; c.lineWidth = 2;
+  c.beginPath(); c.ellipse(x, y - 24, 19, 18, 0, 0, 7); c.fill(); if (type !== 2) c.stroke();
+  c.fillStyle = type === 2 ? "#ffffff" : "#ffffff99"; c.beginPath(); c.ellipse(x + 2, y - 21, 11, 11, 0, 0, 7); c.fill();
+  // scarf (SDG green)
+  c.fillStyle = "#2fa66a"; rrc(c, x - 16, y - 42, 32, 8, 4); c.fill();
+  c.beginPath(); c.moveTo(x - 12, y - 36); c.lineTo(x - 22 - Math.sin(tt * 10) * 3, y - 28); c.lineTo(x - 8, y - 34); c.fill();
+  // ears (behind head)
+  if (type === 0) {
+    [[-9, -.15], [8, .15]].forEach(([dx, r]) => {
+      c.save(); c.translate(x + dx, y - 68); c.rotate(r + Math.sin(tt * 6 + dx) * .05);
+      c.fillStyle = C.ear; c.strokeStyle = C.line; c.beginPath(); c.ellipse(0, -18, 8, 22, 0, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = C.inner; c.beginPath(); c.ellipse(0, -18, 4, 15, 0, 0, 7); c.fill(); c.restore();
+    });
+  } else if (type === 1) {
+    [[-15, -1], [15, 1]].forEach(([dx, d]) => {
+      c.fillStyle = C.ear; c.strokeStyle = C.line; c.beginPath(); c.moveTo(x + dx - 9 * d, y - 70); c.lineTo(x + dx + 2 * d, y - 92); c.lineTo(x + dx + 10 * d, y - 66); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = C.inner; c.beginPath(); c.moveTo(x + dx - 4 * d, y - 72); c.lineTo(x + dx + 2 * d, y - 85); c.lineTo(x + dx + 6 * d, y - 70); c.closePath(); c.fill();
+    });
+  } else {
+    c.fillStyle = C.ear; c.beginPath(); c.arc(x - 18, y - 80, 9, 0, 7); c.arc(x + 18, y - 80, 9, 0, 7); c.fill();
+  }
   // head
-  ctx.fillStyle = "#f2c19a"; ctx.beginPath(); ctx.arc(x + 2, y - 72, 15, 0, 7); ctx.fill();
-  ctx.fillStyle = "#3b2a20"; ctx.beginPath(); ctx.arc(x + 2, y - 76, 15, Math.PI, 0); ctx.fill();
-  ctx.fillStyle = "#14423a"; ctx.beginPath(); ctx.arc(x + 8, y - 72, 2.2, 0, 7); ctx.fill();
-  ctx.strokeStyle = "#a0543e"; ctx.lineWidth = 2; ctx.beginPath();
-  if (energy > 0) ctx.arc(x + 8, y - 66, 4, .2, Math.PI - .4); else ctx.arc(x + 8, y - 62, 4, Math.PI + .4, -.4);
-  ctx.stroke();
-  if (energy <= 0) { ctx.fillStyle = "#6ec6ff"; ctx.beginPath(); ctx.arc(x - 12, y - 80 + (t * 30 % 12), 3, 0, 7); ctx.fill(); }
+  c.fillStyle = C.body; c.strokeStyle = C.line; c.lineWidth = 2;
+  c.beginPath(); c.ellipse(x, y - 62, 25, 22, 0, 0, 7); c.fill(); c.stroke();
+  if (type === 1) { c.fillStyle = C.line; [-6, 0, 6].forEach(d => { c.fillRect(x + d - 1.5, y - 84, 3, 8); }); }
+  // eyes
+  const ex = 9, eyY = y - 63;
+  if (type === 2) { c.fillStyle = "#2b2b2b"; [-1, 1].forEach(d => { c.beginPath(); c.ellipse(x + d * ex, eyY + 1, 7, 9, d * -.4, 0, 7); c.fill(); }); }
+  [-1, 1].forEach(d => {
+    if (mood) {
+      c.fillStyle = type === 2 ? "#fff" : "#2b2b2b"; c.beginPath(); c.arc(x + d * ex, eyY, 4.5, 0, 7); c.fill();
+      c.fillStyle = type === 2 ? "#2b2b2b" : "#fff"; c.beginPath(); c.arc(x + d * ex + 1.5, eyY - 1.5, 1.7, 0, 7); c.fill();
+    } else {
+      c.strokeStyle = type === 2 ? "#fff" : "#2b2b2b"; c.lineWidth = 2.5; c.beginPath(); c.arc(x + d * ex, eyY + 2, 4, Math.PI + .3, -.3); c.stroke();
+    }
+  });
+  // cheeks
+  c.fillStyle = C.cheek; c.globalAlpha = .75;
+  c.beginPath(); c.ellipse(x - 16, y - 54, 5, 3.5, 0, 0, 7); c.ellipse(x + 16, y - 54, 5, 3.5, 0, 0, 7); c.fill(); c.globalAlpha = 1;
+  // nose + mouth
+  c.fillStyle = type === 0 ? "#ff8fab" : type === 1 ? "#ff7b7b" : "#2b2b2b";
+  c.beginPath(); c.moveTo(x - 3, y - 57); c.lineTo(x + 3, y - 57); c.lineTo(x, y - 54); c.closePath(); c.fill();
+  c.strokeStyle = "#5a3b3b"; c.lineWidth = 1.8; c.beginPath();
+  if (mood) { c.arc(x - 3, y - 53, 3, .2, Math.PI - .2); c.moveTo(x + 6, y - 53); c.arc(x + 3, y - 53, 3, .2, Math.PI - .2); }
+  else { c.moveTo(x - 4, y - 49); c.quadraticCurveTo(x, y - 53, x + 4, y - 49); }
+  c.stroke();
+  if (type === 1) { c.strokeStyle = C.line; c.lineWidth = 1.5; [-1, 1].forEach(d => { c.beginPath(); c.moveTo(x + d * 12, y - 55); c.lineTo(x + d * 26, y - 58); c.moveTo(x + d * 12, y - 52); c.lineTo(x + d * 26, y - 51); c.stroke(); }); }
+  c.restore();
+}
+function rrc(c, x, y, w, h, r) { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+function drawPlayer() {
+  const moving = energy > 0 && state === "run";
+  if (inv > 0 && (t * 12 | 0) % 2) return;
+  ctx.fillStyle = "#2f6a4a55"; ctx.beginPath(); ctx.ellipse(P.x, GROUND + 4, 24, 6, 0, 0, 7); ctx.fill();
+  const sw = P.ground && moving ? Math.sin(P.run) : P.ground ? 0 : .7;
+  const bob = P.ground && moving ? Math.abs(Math.sin(P.run)) * -3 : 0;
+  drawAnimal(ctx, avatar, P.x, P.y + bob, sw, energy > 0 ? 1 : 0, t);
+  if (!P.ground && jumps === 2) { ctx.fillStyle = "#fff59a"; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(P.x - 22 + k * 22, P.y + 6, 3, 0, 7); ctx.fill(); } }
+  if (energy <= 0) { ctx.fillStyle = "#6ec6ff"; ctx.beginPath(); ctx.arc(P.x + 24, P.y - 76 + (t * 30 % 12), 3.5, 0, 7); ctx.fill(); }
+}
+
+// avatar picker previews
+const avBtns = [...document.querySelectorAll(".av")];
+function selectAvatar(i) {
+  avatar = i; avBtns.forEach((b, k) => b.classList.toggle("sel", k === i));
+  try { localStorage.setItem("lariSihatAvatar", i); } catch (e) {}
+}
+avBtns.forEach((b, i) => b.onclick = () => { selectAvatar(i); beep(660 + i * 120, .1, "triangle", .07); });
+selectAvatar(avatar);
+function drawPreviews(now) {
+  if (state !== "menu" && !$("startOv").classList.contains("show")) return;
+  const tt = now / 1000;
+  avBtns.forEach((b, i) => {
+    const c = b.querySelector("canvas").getContext("2d");
+    c.clearRect(0, 0, 160, 150);
+    c.fillStyle = i === avatar ? "#ffe9a8" : "#e3f8ec"; c.beginPath(); c.ellipse(80, 132, 52, 10, 0, 0, 7); c.fill();
+    const hop = i === avatar ? Math.abs(Math.sin(tt * 5)) * 12 : 0;
+    c.save(); c.translate(80, 132 - hop); c.scale(1.25, 1.25);
+    drawAnimal(c, i, 0, 0, i === avatar ? Math.sin(tt * 10) : 0, 1, tt + i);
+    c.restore();
+  });
 }
 
 function loop(now) {
   const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
   if (state === "run") update(dt);
   draw();
+  drawPreviews(now);
   requestAnimationFrame(loop);
 }
 

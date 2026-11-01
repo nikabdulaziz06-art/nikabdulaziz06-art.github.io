@@ -3,7 +3,11 @@
 Permainan pendidikan **SDG 3: Kesihatan Baik & Kesejahteraan**.
 Topik ESD: **Pemakanan sihat dan gaya hidup aktif**.
 
-**Main sekarang:** https://nikabdulaziz06-art.github.io
+**Main sekarang:**
+- Versi 2D: https://nikabdulaziz06-art.github.io
+- Versi 3D (mod melintang): https://nikabdulaziz06-art.github.io/3d.html
+
+Versi 3D: 3 lorong (leret kiri/kanan atau ◀ ▶), leret ke atas / sentuh untuk lompat, 2 kali untuk lompat tinggi. Paling seronok dalam mod melintang di telefon. Three.js r128 (MIT) disimpan dalam `lib/`.
 
 ## Cara bermain
 - Pilih avatar comel: 🐰 Arnab, 🐱 Kucing atau 🐼 Panda.

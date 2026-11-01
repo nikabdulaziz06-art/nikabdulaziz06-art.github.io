@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#5cc8ff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="Lari Sihat 3D: game pendidikan SDG 3 dalam 3D. Pilih avatar haiwan, lari, lompat dan jawab soalan untuk dapatkan tenaga.">
+<title>Lari Sihat 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2d2a5a;--muted:#6b679a;--pink:#ff5fa2;--blue:#3fa9ff;--yellow:#ffd23f;--green:#3ddc84;--purple:#9b6bff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#5cc8ff;font-family:"Fredoka",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+  user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none}
+#c3d{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;display:block}
+#fx{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:40}
+/* HUD */
+#hud{position:fixed;left:0;right:0;top:0;display:flex;gap:6px;align-items:stretch;padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 0 max(10px,env(safe-area-inset-left));z-index:5;pointer-events:none}
+.st{background:#ffffffe6;border:3px solid #fff;border-radius:16px;padding:4px 10px;box-shadow:0 4px 0 #0000001f;min-width:0}
+.st small{display:block;font-size:11px;font-weight:700;opacity:.75;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st strong{font-size:19px;white-space:nowrap}
+#stE{flex:1.6;background:#fff4b8e6}#stL{background:#ffd9e8e6}#stS{background:#d6f0ffe6}#stZ{flex:1.4;background:#e6dcffe6}
+.bar{height:12px;background:#fff;border-radius:99px;overflow:hidden;margin-top:3px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#3ddc84,#a6f04a,#ffd23f);transition:width .15s}
+.bar.low i{background:linear-gradient(90deg,#ff5f6d,#ffb347);animation:blink .6s infinite}
+@keyframes blink{50%{opacity:.45}}
+.zones{display:flex;gap:3px;margin-top:4px}.zones b{flex:1;height:8px;border-radius:4px;background:#fff}
+.zones b.done{background:var(--green)}.zones b.now{background:var(--pink);animation:blink 1s infinite}
+#topBtns{display:flex;gap:6px;pointer-events:auto}
+/* buttons */
+button{font:inherit;border:0;border-radius:16px;background:var(--blue);color:#fff;font-weight:700;padding:10px 14px;font-size:16px;cursor:pointer;box-shadow:0 5px 0 #1f7fd1;touch-action:manipulation}
+button:active{transform:translateY(4px);box-shadow:0 1px 0 #1f7fd1}
+button.soft{background:#fff;color:var(--ink);box-shadow:0 5px 0 #d9d2ff;border:3px solid #e6dcff}
+button.sun{background:linear-gradient(180deg,#ffe36e,#ffc21a);color:#6b3b00;box-shadow:0 5px 0 #e09a00;font-size:19px}
+#quizBtn{background:linear-gradient(180deg,#b79bff,#8b5cf6);box-shadow:0 5px 0 #6a3fd6}
+/* touch pad */
+#pad{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;padding:0 max(14px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));z-index:5;pointer-events:none}
+#pad .grp{display:flex;gap:10px;pointer-events:auto}
+.pb{width:74px;height:74px;border-radius:50%;font-size:30px;padding:0;background:#ffffffd9;color:var(--ink);box-shadow:0 5px 0 #c9bdf5;border:4px solid #fff}
+#jumpBtn{width:96px;height:96px;font-size:20px;line-height:1.05;background:linear-gradient(180deg,#ff7eb6,#ff4f98);color:#fff;box-shadow:0 6px 0 #c92f72;border:4px solid #fff}
+#hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#ffffffd0;border-radius:14px;padding:6px 12px;font-size:13px;font-weight:600;z-index:4;pointer-events:none;white-space:nowrap}
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:10px;background:#5b3fa8a8;overflow:auto;touch-action:auto}
+.overlay.show{display:flex}
+.dialog{width:min(640px,100%);max-height:100%;overflow:auto;background:#fff;border-radius:26px;padding:16px 18px;text-align:center;border:6px solid #ffe36e;box-shadow:0 10px 0 #f2b300,0 20px 50px #2d2a5a55;animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.dialog h1{margin:2px 0 4px;font-size:clamp(24px,4.4vw,34px);line-height:1.1;color:var(--pink)}
+.dialog h2{margin:4px 0 8px;font-size:clamp(17px,3vw,23px);line-height:1.25}
+.dialog p{line-height:1.4;color:var(--muted);margin:6px 0;font-size:15px}
+.avatars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0}
+.av{border:4px solid #fff;border-radius:18px;padding:4px 4px 8px;color:var(--ink);font-weight:700;box-shadow:0 5px 0 #0000001a}
+.av[data-a="0"]{background:#ffe3ef}.av[data-a="1"]{background:#ffeccc}.av[data-a="2"]{background:#e3f4ff}
+.av:active{transform:translateY(3px)}
+.av canvas{width:100%;max-width:104px;height:auto;display:block;margin:auto}
+.av.sel{border-color:#ffc21a;box-shadow:0 0 0 5px #ffe36e,0 5px 0 #e09a00;transform:translateY(-3px)}
+.av span{display:block;font-size:17px}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0;text-align:left}
+.how div{border-radius:14px;padding:7px 9px;font-size:13px;line-height:1.3}
+.how div:nth-child(1){background:#d6f0ff}.how div:nth-child(2){background:#fff4b8}.how div:nth-child(3){background:#ffd9e8}
+.how b{font-size:18px;margin-right:4px}
+#startBtn{padding:13px 28px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.small{font-size:12.5px;color:var(--muted);margin-top:8px}
+.small a{color:#7a4fe0;font-weight:700}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.answers button{color:#fff;text-align:left;font-weight:700;font-size:16px;line-height:1.25;padding:12px 13px;text-shadow:0 1px 0 #0003}
+.answers button:nth-child(1){background:#ff5f8f;box-shadow:0 5px 0 #d13a6a}
+.answers button:nth-child(2){background:#3fa9ff;box-shadow:0 5px 0 #1f7fd1}
+.answers button:nth-child(3){background:#ffb020;box-shadow:0 5px 0 #d98a00}
+.answers button:nth-child(4){background:#2fc879;box-shadow:0 5px 0 #179a57}
+.answers button:disabled{opacity:.35}
+.answers button.ok{opacity:1;outline:5px solid #16a34a;outline-offset:2px}.answers button.ok::after{content:" ✔"}
+.answers button.no{opacity:1;outline:5px solid #e5484d;outline-offset:2px}.answers button.no::after{content:" ✖"}
+.chip{display:inline-block;background:#e6dcff;color:#5b3fa8;border-radius:99px;padding:4px 11px;font-size:12.5px;font-weight:700}
+.chip+.chip{background:#fff4b8;color:#8a5a00}
+.feedback{font-weight:700;margin-top:10px;line-height:1.4;font-size:15px;border-radius:14px}
+.feedback:empty{display:none}
+.feedback.ok{color:#0f7a3a;background:#dcfce7;padding:8px}.feedback.bad{color:#b4232a;background:#ffe4e6;padding:8px}
+.summary{text-align:left;background:#f3eeff;border-radius:16px;padding:8px 14px;margin-top:8px;font-size:14.5px;line-height:1.55}
+.summary div{display:flex;justify-content:space-between;gap:8px}
+.big{font-size:48px;line-height:1}
+#rotateOv .dialog{border-color:#9b6bff;box-shadow:0 10px 0 #6a3fd6}
+.phone{font-size:64px;display:inline-block;animation:turn 1.8s ease-in-out infinite}
+@keyframes turn{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+@media (max-height:480px){
+  .dialog{padding:10px 14px;border-width:5px}
+  .dialog p{font-size:13.5px;margin:4px 0}
+  .avatars{margin:4px 0}.av canvas{max-width:78px}
+  .how{display:none}
+  .answers button{font-size:14.5px;padding:9px 11px}
+  .pb{width:62px;height:62px;font-size:26px}#jumpBtn{width:84px;height:84px;font-size:18px}
+  .st strong{font-size:16px}
+}
+@media (max-width:640px) and (orientation:portrait){.answers{grid-template-columns:1fr}.how{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<canvas id="c3d"></canvas>
+
+<div id="hud">
+  <div class="st" id="stE"><small>Tenaga ⚡ <span id="energyText">0</span>%</small><div class="bar" id="energyBar"><i id="energyFill"></i></div></div>
+  <div class="st" id="stL"><small>Nyawa</small><strong id="lives">❤️❤️❤️</strong></div>
+  <div class="st" id="stS"><small>Skor</small><strong id="score">0</strong></div>
+  <div class="st" id="stZ"><small id="zoneName">Zon 1</small><div class="zones" id="zones"><b></b><b></b><b></b><b></b><b></b></div></div>
+  <div id="topBtns"><button class="soft" id="soundBtn" aria-label="Bunyi">🔊</button><button class="soft" id="pauseBtn" aria-label="Rehat">⏸️</button><button id="quizBtn">KUIZ +⚡</button></div>
+</div>
+
+<div id="pad">
+  <div class="grp"><button class="pb" id="leftBtn" aria-label="Kiri">◀</button><button class="pb" id="rightBtn" aria-label="Kanan">▶</button></div>
+  <div class="grp"><button class="pb" id="jumpBtn">LOMPAT<br>⬆</button></div>
+</div>
+<div id="hint">Leret ⬅ ➡ tukar lorong · Leret ⬆ / sentuh = lompat · 2 kali = lompat tinggi</div>
+
+<div class="overlay show" id="startOv">
+  <div class="dialog">
+    <h1>🌈 Lari Sihat 3D</h1>
+    <p>Pilih avatar comel anda:</p>
+    <div class="avatars" id="avatars">
+      <button class="av" data-a="0"><canvas width="160" height="150"></canvas><span>Arnab</span></button>
+      <button class="av" data-a="1"><canvas width="160" height="150"></canvas><span>Kucing</span></button>
+      <button class="av" data-a="2"><canvas width="160" height="150"></canvas><span>Panda</span></button>
+    </div>
+    <p>Tenaga ⚡ hanya datang daripada <b>menjawab soalan</b>. Tanpa tenaga, avatar tak boleh bergerak! Lalui <b>5 zon</b> hingga ke TAMAT.</p>
+    <div class="how">
+      <div><b>⬅➡</b>Tukar lorong: leret / ◀ ▶ / A D</div>
+      <div><b>⬆</b>Lompat: sentuh / SPACE. <b>2 kali</b> untuk lompat tinggi</div>
+      <div><b>🧱🌳</b>Elak dinding tanah, tunggul &amp; pokok</div>
+    </div>
+    <div class="row"><button class="sun" id="startBtn">MULA BERMAIN ▶</button></div>
+    <div class="small">Terbaik dalam mod <b>melintang</b> 📱↔️ · <a href="./">Main versi 2D</a> · <span id="bestText"></span></div>
+  </div>
+</div>
+
+<div class="overlay" id="quizOv">
+  <div class="dialog">
+    <div><span class="chip" id="qZone">Zon</span> <span class="chip" id="qWhy">⚡</span></div>
+    <h2 id="qText">Soalan</h2>
+    <div class="answers" id="answers"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="row" id="quizNext" style="display:none"><button id="nextBtn">LARI ▶</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="pauseOv">
+  <div class="dialog">
+    <div class="big">⏸️</div><h1>Rehat sekejap</h1>
+    <div class="row"><button class="sun" id="resumeBtn">SAMBUNG ▶</button><button class="soft" id="restartBtn">MULA SEMULA ↻</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="endOv">
+  <div class="dialog">
+    <div class="big" id="endEmoji">🏆</div>
+    <h1 id="endTitle">Tahniah!</h1>
+    <p id="endText"></p>
+    <div class="summary" id="summary"></div>
+    <div class="row"><button class="sun" id="againBtn">MAIN LAGI ↻</button><button class="soft" id="avatarBtn">TUKAR AVATAR 🐰</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="rotateOv">
+  <div class="dialog">
+    <div class="phone">📱</div>
+    <h1>Pusingkan telefon</h1>
+    <p>Game 3D ini paling seronok dalam mod <b>melintang</b>. Pusingkan telefon anda ke tepi 🔄</p>
+    <div class="row"><button class="soft" id="portraitBtn">Main dalam potret juga</button></div>
+  </div>
+</div>
+
+<canvas id="fx"></canvas>
+<script src="lib/three.min.js"></script>
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+
+// ---------------- questions (same as the 2D game) ----------------
+const Q = [
+ [ // 1. Food sorting
+  {q:"🍚 Nasi, roti dan mi termasuk dalam kumpulan makanan apa?",a:["Bijirin & ubi","Protein","Lemak & gula","Susu"],c:0,e:"Nasi, roti, mi dan ubi ialah bijirin: sumber tenaga utama badan."},
+  {q:"🐟 Ikan, ayam, telur dan kekacang ialah sumber…",a:["Protein","Gula","Lemak sahaja","Serat sahaja"],c:0,e:"Protein membina dan membaiki otot serta tisu badan."},
+  {q:"🥛 Susu, keju dan yogurt kaya dengan…",a:["Kalsium untuk tulang & gigi","Gula semata-mata","Kafein","Garam"],c:0,e:"Produk tenusu membekalkan kalsium untuk tulang dan gigi yang kuat."},
+  {q:"🍩🍟 Di manakah makanan bergula, berlemak dan masin dalam Piramid Makanan?",a:["Di puncak: makan sedikit sahaja","Di dasar: makan paling banyak","Di tengah: makan setiap jam","Tiada dalam piramid"],c:0,e:"Lemak, gula dan garam berada di puncak piramid, jadi ambil dalam kuantiti sedikit."},
+  {q:"🥕🍌 Sayur-sayuran dan buah-buahan membekalkan…",a:["Vitamin, mineral & serat","Lemak tepu","Gula tambahan","Kafein"],c:0,e:"Sayur dan buah kaya dengan vitamin, mineral dan serat."},
+  {q:"Isih makanan ini: 🥚 Telur masuk bakul mana?",a:["Protein","Bijirin","Lemak & gula","Minuman manis"],c:0,e:"Telur ialah sumber protein yang mudah didapati."},
+  {q:"Isih makanan ini: 🥔 Ubi kentang masuk bakul mana?",a:["Bijirin & ubi","Protein","Susu","Lemak & gula"],c:0,e:"Ubi kentang membekalkan karbohidrat seperti nasi dan roti."},
+  {q:"Isih makanan ini: 🥤 Air bergas bergula masuk bakul mana?",a:["Hadkan: tinggi gula","Makan setiap hari","Sumber protein","Sumber kalsium"],c:0,e:"Minuman bergas tinggi gula, jadi pilih air kosong."},
+  {q:"Makanan manakah paling sesuai di DASAR Piramid Makanan?",a:["Bijirin seperti nasi & roti","Kuih manis","Kerepek","Coklat"],c:0,e:"Bijirin berada di dasar piramid kerana ia sumber tenaga utama."},
+  {q:"Kekacang seperti kacang dal dan tempe ialah contoh…",a:["Protein daripada tumbuhan","Lemak & gula","Minuman","Tenusu"],c:0,e:"Kekacang dan produk soya ialah sumber protein tumbuhan."},
+ ],
+ [ // 2. Healthy food habits (animation story)
+  {q:"Mengapa sarapan pagi penting?",a:["Memberi tenaga untuk belajar & bermain","Supaya boleh tidur di kelas","Tidak penting langsung","Untuk minum air manis"],c:0,e:"Sarapan membekalkan tenaga dan membantu fokus di sekolah."},
+  {q:"Apakah amalan yang baik SEBELUM makan?",a:["Basuh tangan dengan sabun","Terus makan walaupun tangan kotor","Main telefon","Tidak perlu apa-apa"],c:0,e:"Membasuh tangan membuang kuman yang boleh menyebabkan penyakit."},
+  {q:"Minuman terbaik untuk menghilangkan dahaga ialah…",a:["Air kosong","Air bergas","Sirap pekat","Minuman tenaga"],c:0,e:"Air kosong menghidratkan badan tanpa gula tambahan."},
+  {q:"Berapa gelas air kosong yang disyorkan sehari?",a:["Kira-kira 6–8 gelas","1 gelas sahaja","Tidak perlu minum","20 gelas sekaligus"],c:0,e:"Minum kira-kira 6–8 gelas air sehari, lebih lagi bila aktif atau cuaca panas."},
+  {q:"Snek manakah pilihan lebih sihat?",a:["Buah segar","Gula-gula","Kerepek bergoreng","Donat bersalut coklat"],c:0,e:"Buah segar membekalkan vitamin dan serat dengan gula semula jadi."},
+  {q:"Apakah tabiat makan yang baik?",a:["Makan perlahan & kunyah dengan baik","Makan sangat laju","Makan sambil berlari","Langkau semua waktu makan"],c:0,e:"Makan perlahan membantu penghadaman dan kita tahu bila sudah kenyang."},
+  {q:"Mengapa kita patut kurangkan makanan segera (fast food)?",a:["Tinggi lemak, garam & gula","Terlalu banyak sayur","Terlalu banyak air","Kerana ia sihat sangat"],c:0,e:"Makanan segera biasanya tinggi lemak, garam dan gula."},
+  {q:"Bila sebaiknya berhenti makan?",a:["Bila rasa kenyang","Bila pinggan kawan habis","Hanya bila sakit perut","Tidak perlu berhenti"],c:0,e:"Dengar isyarat badan dan berhenti bila sudah kenyang."},
+  {q:"Makan sambil menonton skrin boleh menyebabkan…",a:["Makan berlebihan tanpa sedar","Badan lebih tinggi","Mata lebih sihat","Tidur lebih awal"],c:0,e:"Bila leka dengan skrin, kita mudah makan lebih daripada yang perlu."},
+  {q:"Makan bersama keluarga di meja makan membantu…",a:["Tabiat makan teratur & hubungan erat","Makan lebih banyak gula","Langkau sarapan","Tidur lewat"],c:0,e:"Makan bersama menggalakkan waktu makan teratur dan ikatan keluarga."},
+ ],
+ [ // 3. Healthy food simulator (balanced plate)
+  {q:"Pinggan Sihat Malaysia: separuh (½) pinggan patut diisi dengan…",a:["Sayur & buah","Nasi","Ayam goreng","Kuih"],c:0,e:"Konsep suku-suku-separuh: ½ sayur & buah, ¼ bijirin, ¼ protein."},
+  {q:"Dalam Pinggan Sihat, berapa bahagian untuk nasi/bijirin?",a:["Suku (¼) pinggan","Penuh pinggan","Separuh pinggan","Tiada langsung"],c:0,e:"Bijirin mengisi ¼ pinggan, protein ¼ dan sayur & buah ½."},
+  {q:"Anda sedang bina makan tengah hari. Pilih hidangan paling seimbang:",a:["Nasi + ikan bakar + sayur + buah","Nasi + nasi + kerepek","Mi segera + air bergas","Kek + aiskrim"],c:0,e:"Hidangan seimbang ada bijirin, protein, sayur dan buah."},
+  {q:"Kaedah memasak manakah lebih sihat?",a:["Rebus, kukus atau bakar","Goreng dalam minyak banyak","Goreng berulang kali","Tambah gula banyak"],c:0,e:"Merebus, mengukus dan membakar menggunakan kurang minyak."},
+  {q:"Gantikan minuman manis dalam set makanan anda dengan…",a:["Air kosong","Air bergas","Teh tarik extra manis","Sirap"],c:0,e:"Air kosong memastikan hidangan anda bebas gula tambahan."},
+  {q:"Saiz hidangan yang sesuai bermaksud…",a:["Makan secukupnya, tidak berlebihan","Tambah nasi tiga kali","Makan sehingga sakit perut","Makan sekali sehari sahaja"],c:0,e:"Kawal saiz hidangan supaya tenaga yang masuk seimbang dengan keperluan."},
+  {q:"Pilihan roti yang lebih tinggi serat ialah…",a:["Roti gandum penuh (wholemeal)","Roti manis berkrim","Donat","Biskut coklat"],c:0,e:"Bijirin penuh mengandungi lebih banyak serat dan mengenyangkan lebih lama."},
+  {q:"Membaca label makanan membantu kita…",a:["Pilih makanan kurang gula, garam & lemak","Tahu warna kotak","Makan lebih banyak","Tiada gunanya"],c:0,e:"Label nutrisi menunjukkan kandungan gula, garam dan lemak."},
+  {q:"Pelangi di pinggan (pelbagai warna sayur & buah) bermaksud…",a:["Lebih banyak jenis vitamin & mineral","Makanan berwarna tiruan","Lebih banyak gula","Tiada beza"],c:0,e:"Warna berbeza membekalkan nutrien yang berbeza."},
+  {q:"Untuk snek petang selepas bersukan, pilih…",a:["Pisang + segelas susu","Gula-gula + air bergas","Kerepek pedas","Tiada makan langsung, minum kopi"],c:0,e:"Pisang dan susu membekalkan tenaga, protein dan kalsium."},
+ ],
+ [ // 4. Calm mind (stop overthinking)
+  {q:"Apakah maksud 'overthinking'?",a:["Fikir berlebihan tentang sesuatu berulang kali","Tidur terlalu lama","Bersenam terlalu kuat","Makan terlalu cepat"],c:0,e:"Overthinking ialah memikirkan sesuatu berulang-ulang sehingga rasa risau atau penat."},
+  {q:"Cara cepat untuk tenangkan diri bila rasa cemas:",a:["Tarik nafas dalam perlahan-lahan","Tahan nafas lama","Marah orang lain","Tidak tidur semalaman"],c:0,e:"Pernafasan dalam dan perlahan membantu badan dan minda bertenang."},
+  {q:"Menulis apa yang difikirkan dalam jurnal boleh…",a:["Melegakan fikiran & susun masalah","Menambah masalah","Membuang masa sahaja","Merosakkan mata"],c:0,e:"Menulis membantu kita lihat masalah dengan lebih jelas."},
+  {q:"Bila ada masalah yang membebankan, langkah yang baik ialah…",a:["Bercakap dengan orang dipercayai","Simpan seorang diri selama-lamanya","Abaikan semua orang","Main game sepanjang malam"],c:0,e:"Berkongsi dengan keluarga, guru atau kaunselor membantu meringankan beban."},
+  {q:"Aktiviti fizikal seperti berjalan atau bersukan membantu minda kerana…",a:["Kurangkan tekanan & baiki mood","Membuat kita lebih risau","Tiada kaitan dengan minda","Menyebabkan susah tidur"],c:0,e:"Bersenam membebaskan hormon yang membantu mood dan kurangkan stres."},
+  {q:"Menggunakan telefon sehingga lewat malam boleh…",a:["Mengganggu tidur & tambah resah","Menjadikan tidur lebih nyenyak","Menambah tenaga esok","Menyihatkan mata"],c:0,e:"Cahaya skrin dan kandungan media sosial boleh mengganggu tidur."},
+  {q:"Fokus pada perkara yang BOLEH kita kawal bermaksud…",a:["Ambil tindakan kecil yang mampu dibuat","Risau tentang semua perkara","Salahkan diri sendiri","Berputus asa"],c:0,e:"Tumpu pada tindakan yang boleh dibuat sekarang mengurangkan rasa risau."},
+  {q:"Tidur yang cukup penting untuk kesihatan mental kerana…",a:["Otak berehat & emosi lebih stabil","Tidak penting langsung","Membuat kita lebih mudah marah","Hanya untuk orang tua"],c:0,e:"Tidur yang cukup membantu otak memproses emosi dan ingatan."},
+  {q:"Teknik 5-4-3-2-1 (cari 5 benda dilihat, 4 disentuh…) digunakan untuk…",a:["Bawa fikiran kembali ke masa kini","Mengira markah ujian","Bersenam","Memasak"],c:0,e:"Teknik grounding ini membantu minda berhenti berfikir berlebihan."},
+  {q:"Apakah sikap yang sihat terhadap kesilapan?",a:["Belajar daripadanya & cuba lagi","Fikir tentangnya setiap malam","Malu sehingga tidak mahu mencuba","Salahkan orang lain"],c:0,e:"Kesilapan ialah peluang belajar. Bersikap baik dengan diri sendiri."},
+ ],
+ [ // 5. Daily healthy routine (habit planner)
+  {q:"Berapa lama remaja digalakkan aktif secara fizikal setiap hari?",a:["Sekurang-kurangnya 60 minit","5 minit sahaja","Sekali seminggu","Tidak perlu"],c:0,e:"WHO menggalakkan kanak-kanak dan remaja aktif sekurang-kurangnya 60 minit sehari."},
+  {q:"Berapa jam tidur yang diperlukan oleh remaja?",a:["Kira-kira 8–10 jam","3 jam","15 jam","Tidak tentu, tidur bila-bila"],c:0,e:"Remaja memerlukan kira-kira 8–10 jam tidur setiap malam."},
+  {q:"Untuk membina tabiat baru, cara paling berkesan ialah…",a:["Mula kecil & buat secara konsisten","Buat semuanya sekaligus","Buat sekali sahaja","Tunggu mood datang"],c:0,e:"Tabiat terbina melalui langkah kecil yang diulang setiap hari."},
+  {q:"Menanda tabiat (habit tracker) dalam planner membantu kita…",a:["Lihat kemajuan & kekal bermotivasi","Lupa tabiat","Tidak perlu usaha","Tidur lewat"],c:0,e:"Melihat rantaian hari yang berjaya memberi motivasi untuk teruskan."},
+  {q:"Duduk terlalu lama (contoh main gajet berjam-jam) boleh dikurangkan dengan…",a:["Bangun & bergerak setiap 30–60 minit","Duduk lebih lama","Baring sahaja","Makan snek lagi"],c:0,e:"Rehat sekejap untuk berdiri dan bergerak memecahkan tempoh duduk yang lama."},
+  {q:"Rutin malam yang membantu tidur nyenyak ialah…",a:["Tutup skrin awal & tidur pada waktu sama","Minum kopi sebelum tidur","Main game sampai tengah malam","Makan besar tepat sebelum tidur"],c:0,e:"Waktu tidur yang tetap dan kurang skrin membantu tidur lebih berkualiti."},
+  {q:"Contoh matlamat harian yang SMART dan sihat:",a:["Berjalan 20 minit selepas sekolah setiap hari","Jadi sihat entah bila","Tidak makan langsung","Bersenam 5 jam sekali"],c:0,e:"Matlamat yang jelas, kecil dan boleh diukur lebih mudah dicapai."},
+  {q:"Peringatan (reminder) minum air dalam aplikasi berguna untuk…",a:["Pastikan badan cukup air sepanjang hari","Minum air bergas","Kurangkan air","Tiada guna"],c:0,e:"Peringatan membantu kita ingat untuk minum air secara berkala."},
+  {q:"Aktiviti manakah contoh gaya hidup aktif?",a:["Berbasikal, bermain bola atau berjalan pantas","Menonton TV sepanjang hari","Duduk berjam-jam","Tidur sepanjang petang"],c:0,e:"Aktiviti yang menggerakkan badan menguatkan jantung dan otot."},
+  {q:"Jika terlepas satu hari tabiat sihat, apa yang patut dibuat?",a:["Sambung semula esok tanpa putus asa","Berhenti terus","Marah diri sendiri","Buang planner"],c:0,e:"Terlepas sehari adalah biasa. Yang penting teruskan semula."},
+ ],
+];
+
+
+const ZONES = [
+  {name:"Isih Makanan", icon:"🧺", sky:0x6fd0ff},
+  {name:"Tabiat Makan Sihat", icon:"🍽️", sky:0xffa8d8},
+  {name:"Simulator Makanan Sihat", icon:"🥗", sky:0xffd95a},
+  {name:"Minda Tenang", icon:"🧘", sky:0xb8a2ff},
+  {name:"Rutin Harian Sihat", icon:"📅", sky:0xffad7a},
+];
+const AVATARS = ["Arnab", "Kucing", "Panda"];
+
+// ---------------- tuning ----------------
+const LANES = [-2.2, 0, 2.2];
+const ZONE_LEN = 240, TOTAL = ZONE_LEN * 5;
+const MAX_E = 100, DRAIN = 3.4, JUMP_COST = 5, QUIZ_GAIN = 40;
+const GRAV = 26, JUMP_V = 9.2, DJUMP_V = 8.4;
+const OBH = {wall: 1.0, wall2: 1.45, stump: 1.15, tree: 2.55};
+
+// ---------------- 2D avatar drawing for the picker ----------------
+// cute animal avatars, drawn standing on (x, y). sw = leg swing, mood: 1 happy, 0 tired
+function drawAnimal(c, type, x, y, sw, mood, tt) {
+  const C = [
+    {body: "#ffffff", line: "#e7d8de", ear: "#ffffff", inner: "#ffb3c7", cheek: "#ffb3c7", feet: "#f4e6ea"},   // rabbit
+    {body: "#ffb35c", line: "#e48f33", ear: "#ffb35c", inner: "#ffd2a8", cheek: "#ff8f8f", feet: "#fff1df"},   // cat
+    {body: "#ffffff", line: "#dcdcdc", ear: "#2b2b2b", inner: "#2b2b2b", cheek: "#ffb3c7", feet: "#2b2b2b"},   // panda
+  ][type];
+  c.save(); c.lineCap = "round"; c.lineJoin = "round";
+  // tail
+  if (type === 1) { c.strokeStyle = C.line; c.lineWidth = 8; c.beginPath(); c.moveTo(x - 18, y - 26); c.quadraticCurveTo(x - 40, y - 40 + Math.sin(tt * 8) * 6, x - 34, y - 58); c.stroke(); }
+  if (type === 0) { c.fillStyle = "#fff"; c.strokeStyle = C.line; c.lineWidth = 2; c.beginPath(); c.arc(x - 20, y - 26, 8, 0, 7); c.fill(); c.stroke(); }
+  // feet
+  c.fillStyle = C.feet;
+  c.beginPath(); c.ellipse(x - 8 + sw * 9, y - 5, 9, 6, 0, 0, 7); c.fill();
+  c.beginPath(); c.ellipse(x + 9 - sw * 9, y - 5, 9, 6, 0, 0, 7); c.fill();
+  // body
+  c.fillStyle = type === 2 ? "#2b2b2b" : C.body; c.strokeStyle = C.line; c.lineWidth = 2;
+  c.beginPath(); c.ellipse(x, y - 24, 19, 18, 0, 0, 7); c.fill(); if (type !== 2) c.stroke();
+  c.fillStyle = type === 2 ? "#ffffff" : "#ffffff99"; c.beginPath(); c.ellipse(x + 2, y - 21, 11, 11, 0, 0, 7); c.fill();
+  // scarf (SDG green)
+  c.fillStyle = "#2fa66a"; rrc(c, x - 16, y - 42, 32, 8, 4); c.fill();
+  c.beginPath(); c.moveTo(x - 12, y - 36); c.lineTo(x - 22 - Math.sin(tt * 10) * 3, y - 28); c.lineTo(x - 8, y - 34); c.fill();
+  // ears (behind head)
+  if (type === 0) {
+    [[-9, -.15], [8, .15]].forEach(([dx, r]) => {
+      c.save(); c.translate(x + dx, y - 68); c.rotate(r + Math.sin(tt * 6 + dx) * .05);
+      c.fillStyle = C.ear; c.strokeStyle = C.line; c.beginPath(); c.ellipse(0, -18, 8, 22, 0, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = C.inner; c.beginPath(); c.ellipse(0, -18, 4, 15, 0, 0, 7); c.fill(); c.restore();
+    });
+  } else if (type === 1) {
+    [[-15, -1], [15, 1]].forEach(([dx, d]) => {
+      c.fillStyle = C.ear; c.strokeStyle = C.line; c.beginPath(); c.moveTo(x + dx - 9 * d, y - 70); c.lineTo(x + dx + 2 * d, y - 92); c.lineTo(x + dx + 10 * d, y - 66); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = C.inner; c.beginPath(); c.moveTo(x + dx - 4 * d, y - 72); c.lineTo(x + dx + 2 * d, y - 85); c.lineTo(x + dx + 6 * d, y - 70); c.closePath(); c.fill();
+    });
+  } else {
+    c.fillStyle = C.ear; c.beginPath(); c.arc(x - 18, y - 80, 9, 0, 7); c.arc(x + 18, y - 80, 9, 0, 7); c.fill();
+  }
+  // head
+  c.fillStyle = C.body; c.strokeStyle = C.line; c.lineWidth = 2;
+  c.beginPath(); c.ellipse(x, y - 62, 25, 22, 0, 0, 7); c.fill(); c.stroke();
+  if (type === 1) { c.fillStyle = C.line; [-6, 0, 6].forEach(d => { c.fillRect(x + d - 1.5, y - 84, 3, 8); }); }
+  // eyes
+  const ex = 9, eyY = y - 63;
+  if (type === 2) { c.fillStyle = "#2b2b2b"; [-1, 1].forEach(d => { c.beginPath(); c.ellipse(x + d * ex, eyY + 1, 7, 9, d * -.4, 0, 7); c.fill(); }); }
+  [-1, 1].forEach(d => {
+    if (mood) {
+      c.fillStyle = type === 2 ? "#fff" : "#2b2b2b"; c.beginPath(); c.arc(x + d * ex, eyY, 4.5, 0, 7); c.fill();
+      c.fillStyle = type === 2 ? "#2b2b2b" : "#fff"; c.beginPath(); c.arc(x + d * ex + 1.5, eyY - 1.5, 1.7, 0, 7); c.fill();
+    } else {
+      c.strokeStyle = type === 2 ? "#fff" : "#2b2b2b"; c.lineWidth = 2.5; c.beginPath(); c.arc(x + d * ex, eyY + 2, 4, Math.PI + .3, -.3); c.stroke();
+    }
+  });
+  // cheeks
+  c.fillStyle = C.cheek; c.globalAlpha = .75;
+  c.beginPath(); c.ellipse(x - 16, y - 54, 5, 3.5, 0, 0, 7); c.ellipse(x + 16, y - 54, 5, 3.5, 0, 0, 7); c.fill(); c.globalAlpha = 1;
+  // nose + mouth
+  c.fillStyle = type === 0 ? "#ff8fab" : type === 1 ? "#ff7b7b" : "#2b2b2b";
+  c.beginPath(); c.moveTo(x - 3, y - 57); c.lineTo(x + 3, y - 57); c.lineTo(x, y - 54); c.closePath(); c.fill();
+  c.strokeStyle = "#5a3b3b"; c.lineWidth = 1.8; c.beginPath();
+  if (mood) { c.arc(x - 3, y - 53, 3, .2, Math.PI - .2); c.moveTo(x + 6, y - 53); c.arc(x + 3, y - 53, 3, .2, Math.PI - .2); }
+  else { c.moveTo(x - 4, y - 49); c.quadraticCurveTo(x, y - 53, x + 4, y - 49); }
+  c.stroke();
+  if (type === 1) { c.strokeStyle = C.line; c.lineWidth = 1.5; [-1, 1].forEach(d => { c.beginPath(); c.moveTo(x + d * 12, y - 55); c.lineTo(x + d * 26, y - 58); c.moveTo(x + d * 12, y - 52); c.lineTo(x + d * 26, y - 51); c.stroke(); }); }
+  c.restore();
+}
+function rrc(c, x, y, w, h, r) { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+
+
+// ---------------- sound ----------------
+let sound = true, ac = null;
+function beep(f, d = .1, type = "sine", v = .08, slide = 0) {
+  if (!sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const o = ac.createOscillator(), g = ac.createGain(), n = ac.currentTime;
+    o.type = type; o.frequency.setValueAtTime(f, n);
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, n + d);
+    g.gain.setValueAtTime(v, n); g.gain.exponentialRampToValueAtTime(.0001, n + d);
+    o.connect(g); g.connect(ac.destination); o.start(n); o.stop(n + d);
+  } catch (e) {}
+}
+const sfx = {
+  jump: () => beep(420, .16, "square", .05, 760),
+  jump2: () => beep(620, .18, "square", .05, 1200),
+  lane: () => beep(500, .07, "triangle", .05, 700),
+  coin: () => { beep(880, .08, "triangle", .07); setTimeout(() => beep(1320, .1, "triangle", .07), 70); },
+  hit: () => beep(180, .3, "sawtooth", .08, 70),
+  ok: () => [523, 659, 784].forEach((f, i) => setTimeout(() => beep(f, .14, "triangle", .08), i * 90)),
+  bad: () => beep(260, .3, "square", .05, 150),
+  zone: () => [392, 523, 659, 784].forEach((f, i) => setTimeout(() => beep(f, .12, "triangle", .07), i * 80)),
+};
+
+// ---------------- confetti ----------------
+const fx = $("fx"), fctx = fx.getContext("2d"); let confetti = [];
+function sizeFx() { fx.width = innerWidth * devicePixelRatio; fx.height = innerHeight * devicePixelRatio; }
+addEventListener("resize", sizeFx); sizeFx();
+function burst(n = 90) {
+  const C = ["#ff5fa2", "#ffd23f", "#3fa9ff", "#3ddc84", "#9b6bff", "#ff8a3d"];
+  for (let i = 0; i < n; i++) confetti.push({x: fx.width / 2, y: fx.height * .45, vx: (Math.random() - .5) * 26 * devicePixelRatio, vy: (-Math.random() * 22 - 6) * devicePixelRatio,
+    r: Math.random() * 6, s: (6 + Math.random() * 6) * devicePixelRatio, c: C[i % 6], life: 1.6 + Math.random()});
+}
+function drawFx(dt) {
+  if (!confetti.length) { if (fx._dirty) { fctx.clearRect(0, 0, fx.width, fx.height); fx._dirty = false; } return; }
+  fx._dirty = true; fctx.clearRect(0, 0, fx.width, fx.height);
+  confetti.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .9 * devicePixelRatio; p.vx *= .985; p.r += .2; p.life -= dt;
+    fctx.save(); fctx.translate(p.x, p.y); fctx.rotate(p.r); fctx.fillStyle = p.c; fctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); fctx.restore(); });
+  confetti = confetti.filter(p => p.life > 0 && p.y < fx.height + 40);
+}
+
+// ---------------- helpers ----------------
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.random() * a.length | 0];
+const show = (id, on) => $(id).classList.toggle("show", on);
+const lerp = (a, b, k) => a + (b - a) * k;
+
+// ---------------- three.js scene ----------------
+const renderer = new THREE.WebGLRenderer({canvas: $("c3d"), antialias: true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+const skyCol = new THREE.Color(ZONES[0].sky);
+scene.background = skyCol.clone();
+scene.fog = new THREE.Fog(skyCol.clone(), 45, 120);
+const camera = new THREE.PerspectiveCamera(62, 1, .1, 300);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x7ad37a, .85));
+const sunL = new THREE.DirectionalLight(0xffffff, .65); sunL.position.set(-6, 12, 4); scene.add(sunL);
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h;
+  camera.fov = w < h ? 78 : 62; camera.updateProjectionMatrix();
+  checkRotate();
+}
+addEventListener("resize", resize);
+
+const M = {};
+const mat = c => M[c] || (M[c] = new THREE.MeshLambertMaterial({color: c}));
+const G = {
+  sph: new THREE.SphereGeometry(1, 20, 14),
+  box: new THREE.BoxGeometry(1, 1, 1),
+  cyl: new THREE.CylinderGeometry(1, 1, 1, 16),
+  cone: new THREE.ConeGeometry(1, 1, 16),
+  circ: new THREE.CircleGeometry(1, 24),
+};
+function mesh(geo, color, sx, sy, sz, x = 0, y = 0, z = 0) {
+  const m = new THREE.Mesh(geo, mat(color)); m.scale.set(sx, sy, sz); m.position.set(x, y, z); return m;
+}
+function canvasTex(w, h, draw) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h);
+  const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
+}
+function sprite(tex, sx, sy) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent: true, depthWrite: false})); s.scale.set(sx, sy, 1); return s;
+}
+const emojiTex = {};
+function emoji(e) {
+  return emojiTex[e] || (emojiTex[e] = canvasTex(128, 128, (c) => {
+    c.fillStyle = "#ffffffaa"; c.beginPath(); c.arc(64, 64, 58, 0, 7); c.fill();
+    c.font = "84px serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(e, 64, 70);
+  }));
+}
+function labelTex(text, bg, fg, w = 512, h = 128, size = 54) {
+  return canvasTex(w, h, (c) => {
+    c.fillStyle = bg; c.beginPath(); c.roundRect ? c.roundRect(6, 6, w - 12, h - 12, 36) : c.rect(6, 6, w - 12, h - 12); c.fill();
+    c.lineWidth = 8; c.strokeStyle = "#fff"; c.stroke();
+    c.fillStyle = fg; c.font = `700 ${size}px Fredoka, system-ui, sans-serif`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(text, w / 2, h / 2 + 3);
+  });
+}
+
+// ---- 3D animal avatars ----
+function makeAnimal(type) {
+  const C = [
+    {body: 0xffffff, ear: 0xffffff, inner: 0xffb3c7, feet: 0xffe3ec, accent: 0xffffff},
+    {body: 0xffaa4d, ear: 0xffaa4d, inner: 0xffd2a8, feet: 0xfff1df, accent: 0xffffff},
+    {body: 0xffffff, ear: 0x2b2b2b, inner: 0x2b2b2b, feet: 0x2b2b2b, accent: 0x2b2b2b},
+  ][type];
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  body.add(mesh(G.sph, type === 2 ? 0x2b2b2b : C.body, .46, .48, .44, 0, .62, 0));
+  body.add(mesh(G.sph, 0xffffff, .3, .32, .2, 0, .6, -.3));            // belly (front = -z)
+  const scarf = new THREE.Mesh(new THREE.TorusGeometry(.32, .07, 8, 20), mat(0x2fc879)); scarf.rotation.x = Math.PI / 2; scarf.position.y = .98; body.add(scarf);
+  const head = new THREE.Group(); head.position.y = 1.35; body.add(head);
+  head.add(mesh(G.sph, C.body, .48, .44, .44));
+  // face (front)
+  if (type === 2) { head.add(mesh(G.sph, 0x2b2b2b, .12, .15, .06, -.17, .02, -.39)); head.add(mesh(G.sph, 0x2b2b2b, .12, .15, .06, .17, .02, -.39)); }
+  const eyeC = type === 2 ? 0xffffff : 0x2b2b2b;
+  head.add(mesh(G.sph, eyeC, .065, .075, .04, -.16, .04, -.43)); head.add(mesh(G.sph, eyeC, .065, .075, .04, .16, .04, -.43));
+  head.add(mesh(G.sph, 0xffffff, .022, .022, .02, -.14, .07, -.47)); head.add(mesh(G.sph, 0xffffff, .022, .022, .02, .18, .07, -.47));
+  head.add(mesh(G.sph, 0xff9fb8, .08, .05, .03, -.29, -.1, -.36)); head.add(mesh(G.sph, 0xff9fb8, .08, .05, .03, .29, -.1, -.36));
+  head.add(mesh(G.sph, type === 2 ? 0x2b2b2b : 0xff7b9c, .05, .035, .04, 0, -.08, -.44));
+  // ears
+  if (type === 0) {
+    [-1, 1].forEach(d => { const e = new THREE.Group(); e.position.set(d * .17, .35, 0); e.rotation.z = -d * .15;
+      e.add(mesh(G.sph, C.ear, .11, .38, .09, 0, .3, 0)); e.add(mesh(G.sph, C.inner, .06, .28, .02, 0, .3, -.07)); head.add(e); g.userData["ear" + d] = e; });
+  } else if (type === 1) {
+    [-1, 1].forEach(d => { const e = mesh(G.cone, C.ear, .14, .3, .12, d * .27, .4, 0); e.rotation.z = -d * .35; head.add(e);
+      const i = mesh(G.cone, C.inner, .08, .18, .04, d * .27, .38, -.07); i.rotation.z = -d * .35; head.add(i); });
+  } else {
+    head.add(mesh(G.sph, C.ear, .14, .14, .1, -.33, .33, 0)); head.add(mesh(G.sph, C.ear, .14, .14, .1, .33, .33, 0));
+  }
+  // tail (back = +z)
+  if (type === 0) body.add(mesh(G.sph, 0xffffff, .14, .14, .14, 0, .5, .44));
+  if (type === 1) { const tail = new THREE.Group(); tail.position.set(0, .55, .38); for (let i = 0; i < 5; i++) tail.add(mesh(G.sph, 0xe48f33, .08, .08, .08, 0, i * .1, i * .07 - i * i * .012)); body.add(tail); g.userData.tail = tail; }
+  if (type === 2) body.add(mesh(G.sph, 0x2b2b2b, .1, .1, .1, 0, .5, .42));
+  // arms + feet
+  const armC = type === 2 ? 0x2b2b2b : C.body;
+  const armL = mesh(G.sph, armC, .1, .2, .1, -.42, .75, -.05), armR = mesh(G.sph, armC, .1, .2, .1, .42, .75, -.05);
+  body.add(armL, armR);
+  const legL = new THREE.Group(), legR = new THREE.Group(); legL.position.set(-.18, .25, 0); legR.position.set(.18, .25, 0);
+  legL.add(mesh(G.sph, C.feet, .14, .16, .2, 0, -.12, -.04)); legR.add(mesh(G.sph, C.feet, .14, .16, .2, 0, -.12, -.04));
+  g.add(legL, legR);
+  // blob shadow
+  const sh = new THREE.Mesh(G.circ, new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: .2, depthWrite: false}));
+  sh.rotation.x = -Math.PI / 2; sh.scale.set(.5, .42, 1); sh.position.y = .02;
+  Object.assign(g.userData, {body, head, legL, legR, armL, armR, shadow: sh});
+  return g;
+}
+
+// ---- world: recycled ground tiles with path, flowers and trees ----
+const TILE = 24, NTILE = 7;
+const tiles = [];
+const pathTex = canvasTex(256, 256, (c) => {
+  c.fillStyle = "#ffe2b8"; c.fillRect(0, 0, 256, 256);
+  c.fillStyle = "#ffd59a"; for (let i = 0; i < 40; i++) { c.beginPath(); c.arc(Math.random() * 256, Math.random() * 256, 4 + Math.random() * 6, 0, 7); c.fill(); }
+  c.fillStyle = "#ffffff"; c.fillRect(80, 0, 6, 256); c.fillRect(170, 0, 6, 256);
+});
+pathTex.wrapS = pathTex.wrapT = THREE.RepeatWrapping; pathTex.repeat.set(1, 3);
+const FLOWERS = [0xff5fa2, 0xffd23f, 0x3fa9ff, 0xffffff, 0xff8a3d, 0x9b6bff];
+function makeTree(scale, color) {
+  const t = new THREE.Group();
+  t.add(mesh(G.cyl, 0x8a5a35, .22 * scale, 1.4 * scale, .22 * scale, 0, .7 * scale, 0));
+  t.add(mesh(G.sph, color, 1 * scale, .9 * scale, 1 * scale, 0, 1.9 * scale, 0));
+  t.add(mesh(G.sph, color, .7 * scale, .65 * scale, .7 * scale, .5 * scale, 1.5 * scale, .2 * scale));
+  return t;
+}
+function decorateTile(tile) {
+  tile.userData.deco.forEach(o => tile.remove(o)); tile.userData.deco = [];
+  for (let i = 0; i < 16; i++) {
+    const side = i % 2 ? 1 : -1, f = new THREE.Group();
+    const col = pick(FLOWERS);
+    for (let k = 0; k < 5; k++) { const a = k * 1.2566; f.add(mesh(G.sph, col, .12, .05, .12, Math.cos(a) * .13, .2, Math.sin(a) * .13)); }
+    f.add(mesh(G.sph, 0xffe36e, .08, .06, .08, 0, .22, 0));
+    f.add(mesh(G.cyl, 0x2fa84f, .025, .2, .025, 0, .1, 0));
+    f.position.set(side * rnd(4.2, 11), 0, rnd(-TILE / 2, TILE / 2)); tile.add(f); tile.userData.deco.push(f);
+  }
+  for (let i = 0; i < 4; i++) {
+    const side = i % 2 ? 1 : -1;
+    const tr = makeTree(rnd(.8, 1.3), pick([0x2fbf71, 0x47d16b, 0x3cc47c, 0x6fdc6f]));
+    tr.position.set(side * rnd(6, 13), 0, rnd(-TILE / 2, TILE / 2)); tile.add(tr); tile.userData.deco.push(tr);
+  }
+}
+for (let i = 0; i < NTILE; i++) {
+  const tile = new THREE.Group();
+  const grass = new THREE.Mesh(new THREE.PlaneGeometry(60, TILE), mat(0x5ee36a)); grass.rotation.x = -Math.PI / 2; tile.add(grass);
+  const path = new THREE.Mesh(new THREE.PlaneGeometry(7.2, TILE), new THREE.MeshLambertMaterial({map: pathTex})); path.rotation.x = -Math.PI / 2; path.position.y = .01; tile.add(path);
+  [-3.75, 3.75].forEach(x => tile.add(mesh(G.box, 0x8af58f, .5, .25, TILE, x, .12, 0)));
+  tile.userData.deco = []; decorateTile(tile);
+  tile.position.z = -i * TILE; scene.add(tile); tiles.push(tile);
+}
+// sky decorations that follow the player
+const skyGroup = new THREE.Group(); scene.add(skyGroup);
+const sunTex = canvasTex(256, 256, (c) => {
+  c.fillStyle = "#ffb400"; c.translate(128, 128);
+  for (let i = 0; i < 12; i++) { c.rotate(Math.PI / 6); c.beginPath(); c.moveTo(-14, -78); c.lineTo(0, -122); c.lineTo(14, -78); c.fill(); }
+  c.fillStyle = "#ffd23f"; c.beginPath(); c.arc(0, 0, 80, 0, 7); c.fill();
+  c.fillStyle = "#5a3b00"; c.beginPath(); c.arc(-26, -12, 9, 0, 7); c.arc(26, -12, 9, 0, 7); c.fill();
+  c.fillStyle = "#ff8fab"; c.beginPath(); c.ellipse(-44, 16, 13, 8, 0, 0, 7); c.ellipse(44, 16, 13, 8, 0, 0, 7); c.fill();
+  c.strokeStyle = "#5a3b00"; c.lineWidth = 6; c.beginPath(); c.arc(0, 8, 24, .25, Math.PI - .25); c.stroke();
+});
+const sun = sprite(sunTex, 16, 16); sun.position.set(22, 26, -110); sun.material.fog = false; skyGroup.add(sun);
+const rainbow = new THREE.Group();
+[0xff5f6d, 0xff9f40, 0xffd23f, 0x4cd964, 0x3fa9ff, 0x9b6bff].forEach((c, i) => {
+  const m = new THREE.Mesh(new THREE.TorusGeometry(40 - i * 1.6, .8, 8, 48, Math.PI), new THREE.MeshBasicMaterial({color: c, transparent: true, opacity: .55, fog: false}));
+  rainbow.add(m);
+});
+rainbow.position.set(-10, -4, -140); skyGroup.add(rainbow);
+const cloudTex = canvasTex(256, 128, (c) => { c.fillStyle = "#fff"; c.beginPath(); c.arc(70, 80, 40, 0, 7); c.arc(125, 55, 52, 0, 7); c.arc(185, 82, 38, 0, 7); c.fill(); c.fillRect(70, 80, 115, 40); });
+const clouds = [];
+for (let i = 0; i < 7; i++) { const s = sprite(cloudTex, 14, 7); s.material.fog = false; s.position.set(rnd(-50, 50), rnd(14, 26), -rnd(40, 130)); skyGroup.add(s); clouds.push(s); }
+
+// ---------------- game objects ----------------
+let obstacles = [], pickups = [], gates = [];
+function makeObstacle(kind) {
+  const g = new THREE.Group();
+  if (kind === "wall" || kind === "wall2") {
+    const h = OBH[kind];
+    g.add(mesh(G.box, 0x9a6038, 1.9, h, .9, 0, h / 2, 0));
+    for (let y = .3; y < h - .1; y += .35) g.add(mesh(G.box, 0xb5784a, 1.92, .1, .92, 0, y, 0));
+    g.add(mesh(G.box, 0x56d36a, 2.05, .2, 1.05, 0, h + .05, 0));
+    for (let k = 0; k < 4; k++) g.add(mesh(G.sph, 0x6e4426, .09, .09, .03, rnd(-.7, .7), rnd(.15, h - .2), -.46));
+  } else if (kind === "stump") {
+    g.add(mesh(G.cyl, 0x7a4e2c, .6, OBH.stump, .6, 0, OBH.stump / 2, 0));
+    g.add(mesh(G.cyl, 0xe0b070, .58, .04, .58, 0, OBH.stump + .01, 0));
+    g.add(mesh(G.sph, 0x56d36a, .35, .25, .35, -.6, .1, 0)); g.add(mesh(G.sph, 0x56d36a, .3, .22, .3, .6, .1, .1));
+  } else {
+    g.add(mesh(G.cyl, 0x6b4223, .32, 1.6, .32, 0, .8, 0));
+    g.add(mesh(G.sph, 0x23a35a, 1.05, .9, 1.05, 0, 2.05, 0));
+    g.add(mesh(G.sph, 0x35c06c, .55, .5, .55, -.35, 2.35, -.5));
+    [[-.5, 2, -.85], [.55, 1.8, -.75], [.1, 2.5, -.8]].forEach(p => g.add(mesh(G.sph, 0xff4d5e, .12, .12, .12, ...p)));
+    const sign = sprite(labelTex("2x ⬆", "#ffd23f", "#6b3b00", 256, 110, 60), 1.5, .64); sign.position.y = 3.3; g.add(sign);
+  }
+  const sh = new THREE.Mesh(G.circ, new THREE.MeshBasicMaterial({color: 0, transparent: true, opacity: .15, depthWrite: false}));
+  sh.rotation.x = -Math.PI / 2; sh.scale.set(1.2, .7, 1); sh.position.y = .015; g.add(sh);
+  return g;
+}
+function makeGate(label, color, finish) {
+  const g = new THREE.Group();
+  [-4.2, 4.2].forEach(x => { g.add(mesh(G.cyl, 0xffffff, .3, 5, .3, x, 2.5, 0)); g.add(mesh(G.sph, color, .45, .45, .45, x, 5.1, 0)); });
+  const tex = finish ? canvasTex(512, 128, (c) => { for (let i = 0; i < 16; i++) for (let j = 0; j < 4; j++) { c.fillStyle = (i + j) % 2 ? "#222" : "#fff"; c.fillRect(i * 32, j * 32, 32, 32); }
+      c.fillStyle = "#ff5fa2"; c.fillRect(120, 24, 272, 80); c.fillStyle = "#fff"; c.font = "700 60px Fredoka, system-ui"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("TAMAT 🏁", 256, 66); })
+    : labelTex(label, "#" + color.toString(16).padStart(6, "0"), "#ffffff", 1024, 160, 62);
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(8.8, 1.6), new THREE.MeshBasicMaterial({map: tex, transparent: true, side: THREE.DoubleSide}));
+  board.position.set(0, 4.6, 0); g.add(board);
+  return g;
+}
+
+// ---------------- state ----------------
+let state = "menu", score = 0, energy = 0, lives = 3, dist = 0, speed = 11, zone = 0, t = 0;
+let inv = 0, tired = 0, streak = 0, pools = [], stats = [], spawnZ = 30, goodZ = 22, gatesMade = 0;
+let avatar = 0, best = 0, jumps = 0, portraitOK = false, treeTip = false;
+try { best = +localStorage.getItem("lariSihat3dBest") || 0; avatar = +localStorage.getItem("lariSihatAvatar") || 0; } catch (e) {}
+if (!(avatar >= 0 && avatar < 3)) avatar = 0;
+const P = {lane: 1, x: 0, y: 0, vy: 0, ground: true, run: 0, obj: null, face: 0};
+const floats = [];
+
+function setPlayer() {
+  if (P.obj) scene.remove(P.obj), scene.remove(P.obj.userData.shadow);
+  P.obj = makeAnimal(avatar); scene.add(P.obj); scene.add(P.obj.userData.shadow);
+}
+
+function hud() {
+  const e = Math.round(energy);
+  $("energyText").textContent = e; $("energyFill").style.width = e + "%";
+  $("energyBar").classList.toggle("low", e < 25);
+  $("lives").textContent = "❤️".repeat(lives) + "🤍".repeat(Math.max(0, 3 - lives));
+  $("score").textContent = score;
+  $("zoneName").textContent = `Zon ${zone + 1}: ${ZONES[zone].name}`;
+  [...$("zones").children].forEach((b, i) => b.className = i < zone ? "done" : i === zone ? "now" : "");
+}
+
+function clearWorld() {
+  [...obstacles, ...pickups, ...gates].forEach(o => scene.remove(o.obj));
+  obstacles = []; pickups = []; gates = [];
+}
+function reset() {
+  clearWorld();
+  score = 0; energy = 0; lives = 3; dist = 0; speed = 11; zone = 0; t = 0; inv = 0; tired = 0; streak = 0; jumps = 0; treeTip = false;
+  spawnZ = 34; goodZ = 24; gatesMade = 0;
+  Object.assign(P, {lane: 1, x: 0, y: 0, vy: 0, ground: true, run: 0, face: Math.PI});
+  pools = Q.map(z => shuffle(z)); stats = ZONES.map(() => ({ok: 0, all: 0}));
+  tiles.forEach((tile, i) => { tile.position.z = -i * TILE + TILE; decorateTile(tile); });
+  skyCol.setHex(ZONES[0].sky);
+  setPlayer(); hud();
+}
+function start() {
+  reset();
+  ["startOv", "endOv", "pauseOv", "quizOv"].forEach(id => show(id, false));
+  state = "run"; sfx.zone();
+  goLandscape();
+  $("hint").style.display = ""; clearTimeout(start.h); start.h = setTimeout(() => $("hint").style.display = "none", 14000);
+  askQuiz(true, true);
+}
+function goLandscape() {
+  try {
+    const el = document.documentElement;
+    if (matchMedia("(pointer:coarse)").matches && !document.fullscreenElement && el.requestFullscreen) {
+      el.requestFullscreen().then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {})).catch(() => {});
+    }
+  } catch (e) {}
+}
+function checkRotate() {
+  const portrait = innerHeight > innerWidth && matchMedia("(pointer:coarse)").matches;
+  const need = portrait && !portraitOK && state !== "menu";
+  if (need && state === "run") { state = "paused"; }
+  show("rotateOv", need);
+}
+$("portraitBtn").onclick = () => { portraitOK = true; show("rotateOv", false); if (state === "paused" && !$("pauseOv").classList.contains("show")) { state = "run"; } };
+addEventListener("orientationchange", () => setTimeout(() => { resize(); if (!$("rotateOv").classList.contains("show") && state === "paused" && !$("pauseOv").classList.contains("show")) state = "run"; }, 300));
+
+// ---------------- input ----------------
+function jump() {
+  if (state !== "run" || tired) return;
+  if (!P.ground && jumps >= 2) return;
+  if (energy < JUMP_COST) { if (P.ground) askQuiz(true); return; }
+  energy -= JUMP_COST;
+  if (P.ground) { P.vy = JUMP_V; P.ground = false; jumps = 1; sfx.jump(); }
+  else { P.vy = DJUMP_V; jumps = 2; sfx.jump2(); }
+  hud();
+}
+function lane(d) {
+  if (state !== "run" || energy <= 0) return;
+  const n = Math.max(0, Math.min(2, P.lane + d));
+  if (n !== P.lane) { P.lane = n; sfx.lane(); }
+}
+addEventListener("keydown", e => {
+  if (state === "quiz") {
+    if (/^Digit[1-4]$/.test(e.code)) { const b = $("answers").children[+e.code.slice(5) - 1]; if (b && !b.disabled) b.click(); }
+    else if (e.code === "Enter" && $("quizNext").style.display !== "none") $("nextBtn").click();
+    return;
+  }
+  if (["Space", "ArrowUp", "KeyW"].includes(e.code)) { e.preventDefault(); jump(); }
+  else if (["ArrowLeft", "KeyA"].includes(e.code)) { e.preventDefault(); lane(-1); }
+  else if (["ArrowRight", "KeyD"].includes(e.code)) { e.preventDefault(); lane(1); }
+  else if (e.code === "KeyP" || e.code === "Escape") togglePause();
+});
+let sx = 0, sy = 0, sT = 0, swiped = false;
+const cv = $("c3d");
+cv.addEventListener("pointerdown", e => { sx = e.clientX; sy = e.clientY; sT = performance.now(); swiped = false; });
+cv.addEventListener("pointermove", e => {
+  if (swiped || !e.buttons && e.pointerType === "mouse") return;
+  const dx = e.clientX - sx, dy = e.clientY - sy;
+  if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)) { lane(dx > 0 ? 1 : -1); swiped = true; }
+  else if (dy < -36) { jump(); swiped = true; }
+});
+cv.addEventListener("pointerup", () => { if (!swiped && performance.now() - sT < 350) jump(); });
+const hold = (id, fn) => $(id).addEventListener("pointerdown", e => { e.preventDefault(); fn(); });
+hold("jumpBtn", jump); hold("leftBtn", () => lane(-1)); hold("rightBtn", () => lane(1));
+$("startBtn").onclick = start; $("againBtn").onclick = start; $("restartBtn").onclick = start;
+$("avatarBtn").onclick = () => { state = "menu"; show("endOv", false); show("startOv", true); };
+$("resumeBtn").onclick = () => togglePause();
+$("pauseBtn").onclick = () => togglePause();
+$("quizBtn").onclick = () => { if (state === "run") askQuiz(false); };
+$("soundBtn").onclick = () => { sound = !sound; $("soundBtn").textContent = sound ? "🔊" : "🔇"; };
+document.addEventListener("visibilitychange", () => { if (document.hidden && state === "run") togglePause(); });
+function togglePause() {
+  if (state === "run") { state = "paused"; show("pauseOv", true); }
+  else if (state === "paused") { state = "run"; show("pauseOv", false); }
+}
+
+// ---------------- quiz ----------------
+let curQ = null;
+function askQuiz(forced, first) {
+  if (state !== "run") return;
+  state = "quiz";
+  if (!pools[zone].length) pools[zone] = shuffle(Q[zone]);
+  curQ = pools[zone].pop();
+  $("qZone").textContent = `${ZONES[zone].icon} Zon ${zone + 1}: ${ZONES[zone].name}`;
+  $("qWhy").textContent = first ? "⚡ Jawab untuk mula berlari!" : forced ? "😮‍💨 Tenaga habis!" : "⚡ Tambah tenaga";
+  $("qText").textContent = curQ.q;
+  $("feedback").textContent = ""; $("feedback").className = "feedback";
+  $("quizNext").style.display = "none";
+  const box = $("answers"); box.innerHTML = "";
+  shuffle(curQ.a.map((txt, i) => ({txt, i}))).forEach((o, k) => {
+    const b = document.createElement("button");
+    b.textContent = `${k + 1}. ${o.txt}`; b.dataset.i = o.i;
+    b.onclick = () => answer(o.i, b); box.appendChild(b);
+  });
+  show("quizOv", true);
+}
+function answer(i, btn) {
+  const ok = i === curQ.c, s = stats[zone]; s.all++;
+  [...$("answers").children].forEach(b => { b.disabled = true; if (+b.dataset.i === curQ.c) b.classList.add("ok"); });
+  const fb = $("feedback");
+  if (ok) {
+    s.ok++; streak++;
+    const bonus = streak >= 3 ? 50 : 0;
+    energy = Math.min(MAX_E, energy + QUIZ_GAIN); score += 100 + bonus; sfx.ok(); burst();
+    fb.className = "feedback ok";
+    fb.textContent = `✅ Betul! +${QUIZ_GAIN} tenaga${bonus ? ` · 🔥 ${streak} berturut-turut +${bonus}` : ""}. ${curQ.e}`;
+    $("nextBtn").textContent = "LARI ▶";
+  } else {
+    streak = 0; btn.classList.add("no"); sfx.bad();
+    fb.className = "feedback bad"; fb.textContent = `❌ Belum tepat. ${curQ.e}`;
+    $("nextBtn").textContent = energy < JUMP_COST ? "CUBA SOALAN LAIN ▶" : "LARI ▶";
+  }
+  hud(); $("quizNext").style.display = "flex";
+}
+$("nextBtn").onclick = () => {
+  show("quizOv", false); state = "run";
+  if (energy < JUMP_COST) askQuiz(true); else tired = 0;
+};
+
+// ---------------- spawning ----------------
+function spawn() {
+  const ahead = dist + 95;
+  while (spawnZ < ahead && spawnZ < TOTAL - 18) {
+    const r = Math.random(), z = zone;
+    const pTree = [.14, .2, .26, .3, .34][z], pHigh = [.12, .18, .22, .24, .26][z];
+    const kind = r < pTree ? "tree" : r < pTree + pHigh ? "wall2" : r < pTree + pHigh + .25 ? "stump" : "wall";
+    let lanes = [Math.random() * 3 | 0];
+    if (kind !== "tree" && Math.random() < .3 + z * .06) { const l2 = (lanes[0] + 1 + (Math.random() * 2 | 0)) % 3; lanes.push(l2); }
+    lanes.forEach(l => {
+      const obj = makeObstacle(kind); obj.position.set(LANES[l], 0, -spawnZ); scene.add(obj);
+      obstacles.push({obj, kind, lane: l, z: spawnZ, h: OBH[kind], hit: false});
+    });
+    spawnZ += rnd(15, 24) - z * .8 + (kind === "tree" ? 3 : 0);
+  }
+  while (goodZ < ahead && goodZ < TOTAL - 10) {
+    const l = Math.random() * 3 | 0, n = 3 + (Math.random() * 3 | 0), high = Math.random() < .3;
+    for (let k = 0; k < n; k++) {
+      const z = goodZ + k * 2.2;
+      if (obstacles.some(o => o.lane === l && Math.abs(o.z - z) < 2.2) && !high) continue;
+      const s = sprite(emoji(pick(["🍎", "🍌", "🥦", "🥕", "🐟", "🥛", "💧", "🍇"])), .9, .9);
+      const y = high ? 2.4 : .8; s.position.set(LANES[l], y, -z); scene.add(s);
+      pickups.push({obj: s, lane: l, z, y, got: false});
+    }
+    goodZ += rnd(14, 26);
+  }
+  while (gatesMade < 5 && (gatesMade + 1) * ZONE_LEN - 2 < ahead + 30) {
+    const k = gatesMade + 1, fin = k === 5;
+    const obj = fin ? makeGate("", 0xff5fa2, true) : makeGate(`ZON ${k + 1} ${ZONES[k].icon} ${ZONES[k].name}`, [0x3fa9ff, 0xff5fa2, 0xf2a900, 0x9b6bff, 0xff8a3d][k], false);
+    obj.position.z = -(k * ZONE_LEN); scene.add(obj); gates.push({obj, z: k * ZONE_LEN}); gatesMade++;
+  }
+}
+
+// ---------------- update ----------------
+function update(dt) {
+  t += dt; if (inv > 0) inv -= dt;
+  if (energy <= 0) { energy = 0; tired += dt; if (P.ground && tired > .7) { askQuiz(true); return; } }
+  const moving = energy > 0 || !P.ground;
+  const v = moving ? speed : 0;
+  if (moving) {
+    dist += v * dt; energy = Math.max(0, energy - DRAIN * dt);
+    speed = 11 + Math.min(6, dist / 260); P.run += dt * v * .9;
+  }
+  // physics
+  P.vy -= GRAV * dt; P.y += P.vy * dt;
+  if (P.y <= 0) { P.y = 0; P.vy = 0; P.ground = true; jumps = 0; }
+  P.x = lerp(P.x, LANES[P.lane], Math.min(1, dt * 14));
+  // zone
+  const z = Math.min(4, Math.floor(dist / ZONE_LEN));
+  if (z !== zone) { zone = z; score += 200; sfx.zone(); burst(60); floatText(`🎉 Zon ${zone + 1}: ${ZONES[zone].name}!`); hud(); }
+  if (dist >= TOTAL) return finish(true);
+  spawn();
+  // collisions
+  for (const o of obstacles) {
+    if (o.hit) continue;
+    const dz = Math.abs(o.z - dist);
+    if (o.kind === "tree" && !treeTip && o.z - dist < 30) { treeTip = true; floatText("🌳 Pokok tinggi! Tukar lorong atau lompat 2 kali ⏫"); }
+    if (dz < .75 && o.lane === P.lane && Math.abs(P.x - LANES[o.lane]) < 1.2 && P.y < o.h - .05 && inv <= 0) {
+      o.hit = true; lives--; inv = 1.4; energy = Math.max(0, energy - 8); streak = 0; sfx.hit();
+      o.obj.rotation.z = .5; o.obj.position.y = -.2; floatText("Aduh! -1 ❤️");
+      hud(); if (lives <= 0) return finish(false);
+    } else if (!o.passed && o.z < dist - 1) { o.passed = true; score += 10; }
+  }
+  for (const p of pickups) {
+    if (p.got) continue;
+    if (Math.abs(p.z - dist) < .8 && p.lane === P.lane && Math.abs(P.y + .7 - p.y) < 1) {
+      p.got = true; score += 25; sfx.coin(); scene.remove(p.obj);
+    }
+  }
+  // cleanup behind
+  obstacles = obstacles.filter(o => { if (o.z < dist - 12) { scene.remove(o.obj); return false; } return true; });
+  pickups = pickups.filter(p => { if (p.got || p.z < dist - 8) { scene.remove(p.obj); return false; } return true; });
+  gates = gates.filter(g => { if (g.z < dist - 15) { scene.remove(g.obj); return false; } return true; });
+  // recycle ground tiles
+  tiles.forEach(tile => { if (-tile.position.z < dist - TILE * 1.5) { tile.position.z -= TILE * NTILE; decorateTile(tile); } });
+  if ((t * 8 | 0) % 2 === 0) hud();
+}
+
+function floatText(txt) {
+  const el = document.createElement("div");
+  el.textContent = txt;
+  el.style.cssText = "position:fixed;left:50%;top:22%;transform:translate(-50%,0);background:#ff5fa2;color:#fff;font-weight:700;font-size:clamp(16px,2.6vw,24px);padding:8px 16px;border-radius:16px;border:4px solid #fff;z-index:15;pointer-events:none;transition:all 1.6s ease;white-space:nowrap;box-shadow:0 5px 0 #c92f72";
+  document.body.appendChild(el);
+  requestAnimationFrame(() => { el.style.top = "15%"; el.style.opacity = "0"; });
+  setTimeout(() => el.remove(), 1700);
+}
+
+function finish(win) {
+  state = "over"; hud();
+  if (win) score += lives * 150;
+  const newBest = score > best;
+  if (newBest) { best = score; try { localStorage.setItem("lariSihat3dBest", best); } catch (e) {} }
+  $("endEmoji").textContent = win ? "🏆" : "💚";
+  $("endTitle").textContent = win ? `Tahniah, ${AVATARS[avatar]} Juara Sihat!` : `${AVATARS[avatar]} perlukan rehat!`;
+  const okAll = stats.reduce((a, s) => a + s.ok, 0), all = stats.reduce((a, s) => a + s.all, 0);
+  $("endText").innerHTML = `${win ? `Anda tamatkan kelima-lima zon! Bonus nyawa +${lives * 150}.<br>` : `Anda sampai ke Zon ${zone + 1}. Cuba lagi!<br>`}` +
+    `Skor: <b>${score}</b>${newBest ? " · 🎉 Rekod baru!" : ` · Rekod: ${best}`} · Jawapan betul: <b>${okAll}/${all}</b>`;
+  $("summary").innerHTML = "<b>Apa yang anda pelajari:</b>" + ZONES.map((z, i) =>
+    `<div><span>${z.icon} ${z.name}</span><span>${stats[i].all ? `${stats[i].ok}/${stats[i].all} betul` : "–"}</span></div>`).join("");
+  sfx[win ? "ok" : "bad"](); if (win) { burst(160); setTimeout(() => burst(160), 500); }
+  setTimeout(() => show("endOv", true), 500);
+}
+
+// ---------------- render ----------------
+const camPos = new THREE.Vector3(0, 3.4, 7), camLook = new THREE.Vector3();
+const target = new THREE.Color();
+function render(dt) {
+  // sky colour per zone
+  target.setHex(ZONES[zone].sky); skyCol.lerp(target, Math.min(1, dt * 2));
+  scene.background.copy(skyCol); scene.fog.color.copy(skyCol);
+  const pz = -dist;
+  // player
+  const o = P.obj, u = o.userData, running = state === "run" && energy > 0 && P.ground;
+  o.position.set(P.x, P.y, pz);
+  const wantFace = (state === "run" && energy > 0) || state === "over" ? 0 : Math.PI;   // face the camera when resting
+  P.face = lerp(P.face, wantFace, Math.min(1, dt * 6)); o.rotation.y = P.face;
+  const sw = running ? Math.sin(P.run * 1.6) : 0;
+  u.legL.rotation.x = sw * .9; u.legR.rotation.x = -sw * .9;
+  u.armL.rotation.x = -sw * .8; u.armR.rotation.x = sw * .8;
+  u.body.position.y = running ? Math.abs(Math.sin(P.run * 1.6)) * .08 : Math.sin(t * 3) * .02;
+  u.body.rotation.x = P.ground ? (running ? -.08 : 0) : (jumps === 2 ? -.3 : -.15);
+  if (u.tail) u.tail.rotation.x = Math.sin(t * 6) * .3;
+  if (u["ear-1"]) { u["ear-1"].rotation.x = Math.sin(t * 8) * .1 - (P.ground ? 0 : .3); u["ear1"].rotation.x = Math.sin(t * 8 + 1) * .1 - (P.ground ? 0 : .3); }
+  o.visible = !(inv > 0 && (t * 12 | 0) % 2);
+  u.shadow.position.set(P.x, .02, pz); u.shadow.scale.setScalar(.5 / (1 + P.y * .25)); u.shadow.scale.y *= .84;
+  // pickups spin
+  pickups.forEach((p, i) => { p.obj.position.y = p.y + Math.sin(t * 4 + i) * .12; });
+  // camera
+  const portrait = innerHeight > innerWidth;
+  camPos.set(P.x * .55, (portrait ? 4.6 : 3.3) + P.y * .35, pz + (portrait ? 8.5 : 6.6));
+  camera.position.lerp(camPos, Math.min(1, dt * 8));
+  camLook.set(P.x * .7, 1.1 + P.y * .3, pz - 7);
+  camera.lookAt(camLook);
+  skyGroup.position.set(0, 0, pz);
+  clouds.forEach((c, i) => { c.position.x += dt * (.5 + i * .1); if (c.position.x > 60) c.position.x = -60; });
+  renderer.render(scene, camera);
+}
+
+// ---------------- avatar picker (2D previews) ----------------
+const avBtns = [...document.querySelectorAll(".av")];
+function selectAvatar(i) {
+  avatar = i; avBtns.forEach((b, k) => b.classList.toggle("sel", k === i));
+  try { localStorage.setItem("lariSihatAvatar", i); } catch (e) {}
+  setPlayer(); P.face = Math.PI;
+}
+avBtns.forEach((b, i) => b.onclick = () => { selectAvatar(i); beep(660 + i * 120, .1, "triangle", .07); });
+function drawPreviews(now) {
+  if (!$("startOv").classList.contains("show")) return;
+  const tt = now / 1000;
+  avBtns.forEach((b, i) => {
+    const c = b.querySelector("canvas").getContext("2d");
+    c.clearRect(0, 0, 160, 150);
+    c.fillStyle = i === avatar ? "#ffe9a8" : "#ffffffaa"; c.beginPath(); c.ellipse(80, 132, 52, 10, 0, 0, 7); c.fill();
+    const hop = i === avatar ? Math.abs(Math.sin(tt * 5)) * 12 : 0;
+    c.save(); c.translate(80, 132 - hop); c.scale(1.25, 1.25);
+    drawAnimal(c, i, 0, 0, i === avatar ? Math.sin(tt * 10) : 0, 1, tt + i);
+    c.restore();
+  });
+}
+
+// ---------------- loop ----------------
+let last = 0;
+function loop(now) {
+  const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
+  if (state === "run") update(dt);
+  if (state === "menu") { t += dt; P.run += dt * 6; }
+  render(dt);
+  drawPreviews(now);
+  drawFx(dt);
+  requestAnimationFrame(loop);
+}
+
+$("bestText").textContent = best ? `🏅 Rekod: ${best}` : "Papan kekunci: ← → lorong · SPACE lompat";
+reset(); selectAvatar(avatar); resize();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

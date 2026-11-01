@@ -183,6 +183,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;margin-top:16px;line-
 <div class="controls">
   <div class="hint"><b>Tip:</b> Tenaga berkurang semasa berlari dan melompat. Jawapan betul = <b>+40 ⚡</b>. Tekan LOMPAT <b>2 kali</b> untuk lompatan tinggi. Tekan KUIZ bila-bila masa untuk tambah tenaga.</div>
   <div class="actions">
+    <button class="soft" id="musicBtn" aria-label="Muzik">🎵</button>
     <button class="soft" id="soundBtn" aria-label="Bunyi">🔊</button>
     <button class="soft" id="pauseBtn" aria-label="Rehat">⏸️</button>
     <button class="soft" id="quizBtn">KUIZ +⚡</button>
@@ -193,6 +194,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;margin-top:16px;line-
 <footer>Permainan pendidikan SDG 3 · Topik ESD: Pemakanan sihat dan gaya hidup aktif<br>Zon: Isih Makanan · Tabiat Makan Sihat · Simulator Makanan Sihat · Minda Tenang · Rutin Harian Sihat</footer>
 </div>
 
+<script src="lib/music.js"></script>
 <script>
 (() => {
 "use strict";
@@ -368,6 +370,7 @@ function start() {
   reset();
   ["startOv", "endOv", "pauseOv", "quizOv"].forEach(id => show(id, false));
   state = "run"; sfx.zone();
+  KM.setZone(0); KM.start();
   askQuiz(true, true);
 }
 
@@ -397,19 +400,23 @@ $("restartBtn").onclick = start;
 $("resumeBtn").onclick = () => togglePause();
 $("pauseBtn").onclick = () => togglePause();
 $("quizBtn").onclick = () => { if (state === "run") askQuiz(false); };
+const KM = window.KidsMusic || {start(){}, stop(){}, pause(){}, duck(){}, setZone(){}, setEnabled(){}, isEnabled(){ return false; }, fanfare(){}};
+const musicLabel = () => $("musicBtn").textContent = KM.isEnabled() ? "🎵" : "🔕";
+$("musicBtn").onclick = () => { KM.setEnabled(!KM.isEnabled()); musicLabel(); };
+musicLabel();
 $("soundBtn").onclick = () => { sound = !sound; $("soundBtn").textContent = sound ? "🔊" : "🔇"; };
 document.addEventListener("visibilitychange", () => { if (document.hidden && state === "run") togglePause(); });
 
 function togglePause() {
-  if (state === "run") { state = "paused"; show("pauseOv", true); }
-  else if (state === "paused") { state = "run"; show("pauseOv", false); last = performance.now(); }
+  if (state === "run") { state = "paused"; show("pauseOv", true); KM.pause(true); }
+  else if (state === "paused") { state = "run"; show("pauseOv", false); last = performance.now(); KM.pause(false); }
 }
 
 // ---------------- quiz ----------------
 let curQ = null;
 function askQuiz(forced, first) {
   if (state !== "run") return;
-  state = "quiz"; quizForced = forced;
+  state = "quiz"; quizForced = forced; KM.duck(true);
   if (!pools[zone].length) pools[zone] = shuffle(Q[zone]);
   curQ = pools[zone].pop();
   $("qZone").textContent = `${ZONES[zone].icon} Zon ${zone + 1}: ${ZONES[zone].name}`;
@@ -448,7 +455,7 @@ function answer(i, btn) {
   $("quizNext").style.display = "flex";
 }
 $("nextBtn").onclick = () => {
-  show("quizOv", false); state = "run"; last = performance.now();
+  show("quizOv", false); state = "run"; last = performance.now(); KM.duck(false);
   if (energy < JUMP_COST) askQuiz(true);
   else tired = 0;
 };
@@ -481,7 +488,7 @@ function update(dt) {
 
   // zone progress
   const z = Math.min(4, Math.floor(dist / ZONE_LEN));
-  if (z !== zone) { zone = z; banner = 2.4; score += 200; sfx.zone(); floats.push({x: W / 2, y: 150, txt: "+200 Zon baru!", life: 1.4, c: "#1f8a4c"}); }
+  if (z !== zone) { zone = z; KM.setZone(zone); banner = 2.4; score += 200; sfx.zone(); floats.push({x: W / 2, y: 150, txt: "+200 Zon baru!", life: 1.4, c: "#1f8a4c"}); }
   const toEnd = ZONE_LEN * 5 - dist;
   if (toEnd < W && flagX === null) flagX = P.x + toEnd;
 
@@ -537,7 +544,7 @@ function update(dt) {
 }
 
 function finish(win) {
-  state = "over"; hud();
+  state = "over"; hud(); KM.stop(); if (win) KM.fanfare();
   if (win) score += lives * 150;
   const newBest = score > best;
   if (newBest) { best = score; try { localStorage.setItem("lariSihatBest", best); } catch (e) {} }

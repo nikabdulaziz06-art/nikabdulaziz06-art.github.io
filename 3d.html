@@ -107,7 +107,7 @@ button.sun{background:linear-gradient(180deg,#ffe36e,#ffc21a);color:#6b3b00;box-
   <div class="st" id="stL"><small>Nyawa</small><strong id="lives">❤️❤️❤️</strong></div>
   <div class="st" id="stS"><small>Skor</small><strong id="score">0</strong></div>
   <div class="st" id="stZ"><small id="zoneName">Zon 1</small><div class="zones" id="zones"><b></b><b></b><b></b><b></b><b></b></div></div>
-  <div id="topBtns"><button class="soft" id="soundBtn" aria-label="Bunyi">🔊</button><button class="soft" id="pauseBtn" aria-label="Rehat">⏸️</button><button id="quizBtn">KUIZ +⚡</button></div>
+  <div id="topBtns"><button class="soft" id="musicBtn" aria-label="Muzik">🎵</button><button class="soft" id="soundBtn" aria-label="Bunyi">🔊</button><button class="soft" id="pauseBtn" aria-label="Rehat">⏸️</button><button id="quizBtn">KUIZ +⚡</button></div>
 </div>
 
 <div id="pad">
@@ -174,6 +174,7 @@ button.sun{background:linear-gradient(180deg,#ffe36e,#ffc21a);color:#6b3b00;box-
 
 <canvas id="fx"></canvas>
 <script src="lib/three.min.js"></script>
+<script src="lib/music.js"></script>
 <script>
 (() => {
 "use strict";
@@ -617,6 +618,7 @@ function start() {
   reset();
   ["startOv", "endOv", "pauseOv", "quizOv"].forEach(id => show(id, false));
   state = "run"; sfx.zone();
+  KM.setZone(0); KM.start();
   goLandscape();
   $("hint").style.display = ""; clearTimeout(start.h); start.h = setTimeout(() => $("hint").style.display = "none", 14000);
   askQuiz(true, true);
@@ -632,11 +634,11 @@ function goLandscape() {
 function checkRotate() {
   const portrait = innerHeight > innerWidth && matchMedia("(pointer:coarse)").matches;
   const need = portrait && !portraitOK && state !== "menu";
-  if (need && state === "run") { state = "paused"; }
+  if (need && state === "run") { state = "paused"; KM.pause(true); }
   show("rotateOv", need);
 }
-$("portraitBtn").onclick = () => { portraitOK = true; show("rotateOv", false); if (state === "paused" && !$("pauseOv").classList.contains("show")) { state = "run"; } };
-addEventListener("orientationchange", () => setTimeout(() => { resize(); if (!$("rotateOv").classList.contains("show") && state === "paused" && !$("pauseOv").classList.contains("show")) state = "run"; }, 300));
+$("portraitBtn").onclick = () => { portraitOK = true; show("rotateOv", false); if (state === "paused" && !$("pauseOv").classList.contains("show")) { state = "run"; KM.pause(false); } };
+addEventListener("orientationchange", () => setTimeout(() => { resize(); if (!$("rotateOv").classList.contains("show") && state === "paused" && !$("pauseOv").classList.contains("show")) { state = "run"; KM.pause(false); } }, 300));
 
 // ---------------- input ----------------
 function jump() {
@@ -681,18 +683,22 @@ $("avatarBtn").onclick = () => { state = "menu"; show("endOv", false); show("sta
 $("resumeBtn").onclick = () => togglePause();
 $("pauseBtn").onclick = () => togglePause();
 $("quizBtn").onclick = () => { if (state === "run") askQuiz(false); };
+const KM = window.KidsMusic || {start(){}, stop(){}, pause(){}, duck(){}, setZone(){}, setEnabled(){}, isEnabled(){ return false; }, fanfare(){}};
+const musicLabel = () => $("musicBtn").textContent = KM.isEnabled() ? "🎵" : "🔕";
+$("musicBtn").onclick = () => { KM.setEnabled(!KM.isEnabled()); musicLabel(); };
+musicLabel();
 $("soundBtn").onclick = () => { sound = !sound; $("soundBtn").textContent = sound ? "🔊" : "🔇"; };
 document.addEventListener("visibilitychange", () => { if (document.hidden && state === "run") togglePause(); });
 function togglePause() {
-  if (state === "run") { state = "paused"; show("pauseOv", true); }
-  else if (state === "paused") { state = "run"; show("pauseOv", false); }
+  if (state === "run") { state = "paused"; show("pauseOv", true); KM.pause(true); }
+  else if (state === "paused") { state = "run"; show("pauseOv", false); KM.pause(false); }
 }
 
 // ---------------- quiz ----------------
 let curQ = null;
 function askQuiz(forced, first) {
   if (state !== "run") return;
-  state = "quiz";
+  state = "quiz"; KM.duck(true);
   if (!pools[zone].length) pools[zone] = shuffle(Q[zone]);
   curQ = pools[zone].pop();
   $("qZone").textContent = `${ZONES[zone].icon} Zon ${zone + 1}: ${ZONES[zone].name}`;
@@ -727,7 +733,7 @@ function answer(i, btn) {
   hud(); $("quizNext").style.display = "flex";
 }
 $("nextBtn").onclick = () => {
-  show("quizOv", false); state = "run";
+  show("quizOv", false); state = "run"; KM.duck(false);
   if (energy < JUMP_COST) askQuiz(true); else tired = 0;
 };
 
@@ -780,7 +786,7 @@ function update(dt) {
   P.x = lerp(P.x, LANES[P.lane], Math.min(1, dt * 14));
   // zone
   const z = Math.min(4, Math.floor(dist / ZONE_LEN));
-  if (z !== zone) { zone = z; score += 200; sfx.zone(); burst(60); floatText(`🎉 Zon ${zone + 1}: ${ZONES[zone].name}!`); hud(); }
+  if (z !== zone) { zone = z; KM.setZone(zone); score += 200; sfx.zone(); burst(60); floatText(`🎉 Zon ${zone + 1}: ${ZONES[zone].name}!`); hud(); }
   if (dist >= TOTAL) return finish(true);
   spawn();
   // collisions
@@ -819,7 +825,7 @@ function floatText(txt) {
 }
 
 function finish(win) {
-  state = "over"; hud();
+  state = "over"; hud(); KM.stop(); if (win) KM.fanfare();
   if (win) score += lives * 150;
   const newBest = score > best;
   if (newBest) { best = score; try { localStorage.setItem("lariSihat3dBest", best); } catch (e) {} }

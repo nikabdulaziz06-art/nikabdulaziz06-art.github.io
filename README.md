@@ -23,3 +23,6 @@ Versi 3D: 3 lorong (leret kiri/kanan atau ◀ ▶), leret ke atas / sentuh untuk
 3. 🥗 Simulator Makanan Sihat (Pinggan Sihat Malaysia: suku-suku-separuh)
 4. 🧘 Minda Tenang (cara elak overthinking)
 5. 📅 Rutin Harian Sihat (tabiat, tidur, aktiviti fizikal)
+
+## Muzik
+Lagu latar ceria ialah gubahan asli yang disintesis terus dalam pelayar (`lib/music.js`, Web Audio API), jadi tiada fail audio atau isu hak cipta. Kekunci lagu bertukar setiap zon, muzik jadi perlahan semasa kuiz, dan ada fanfara bila menang. Butang 🎵 untuk hidup/matikan muzik, 🔊 untuk kesan bunyi.

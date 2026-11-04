@@ -387,10 +387,10 @@ const levelAt = m => clamp(Math.floor(m / 60), 0, 4);
 
 // sky colours by height (metres)
 const SKY = [
-  [0, [52, 156, 236], [196, 236, 255]],
-  [60, [255, 170, 214], [255, 233, 246]],
-  [120, [80, 182, 255], [196, 233, 255]],
-  [180, [255, 150, 120], [196, 160, 255]],
+  [0, [41, 160, 241], [136, 210, 243]],
+  [60, [232, 120, 180], [248, 196, 224]],
+  [120, [28, 128, 222], [120, 196, 240]],
+  [180, [226, 106, 78], [140, 100, 214]],
   [240, [36, 30, 92], [76, 52, 150]],
   [300, [14, 12, 48], [40, 26, 96]],
 ];
@@ -650,27 +650,27 @@ function soft(c, x, y, r, col, a = 1) {
   g.addColorStop(0, col.replace("A", a)); g.addColorStop(.6, col.replace("A", a * .85)); g.addColorStop(1, col.replace("A", 0));
   c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
 }
-const TRUNK_X = 70, TRUNK_W = 340, TILE_H = 480;
+const TRUNK_X = 46, TRUNK_W = 380, TILE_H = 480;
 function buildArt() {
   const k = Math.min(3, cv.width / W), rs = mulberry(7);
   // trunk tile, seamless vertically
   let [c, x] = layer(TRUNK_W, TILE_H, k);
   const g = x.createLinearGradient(0, 0, TRUNK_W, 0);
-  [[0, "#6a3412"], [.1, "#9a5221"], [.42, "#dd9150"], [.58, "#d88a48"], [.86, "#a0561f"], [1, "#6a3412"]].forEach(([o, col]) => g.addColorStop(o, col));
+  [[0, "#4e2912"], [.06, "#734428"], [.17, "#bd6e22"], [.32, "#eea042"], [.48, "#f7ae45"], [.66, "#e8982f"], [.84, "#b0661e"], [.94, "#79441f"], [1, "#4e2912"]].forEach(([o, col]) => g.addColorStop(o, col));
   x.fillStyle = g; x.fillRect(0, 0, TRUNK_W, TILE_H);
   for (let i = 0; i < 46; i++) {
     const bx = rs() * TRUNK_W, amp = 2 + rs() * 6, n = 1 + (rs() * 3 | 0), ph = rs() * 6, dark = rs() < .6;
-    x.strokeStyle = dark ? "rgba(110,52,18,.28)" : "rgba(248,180,120,.22)"; x.lineWidth = 1 + rs() * 2.5;
+    x.strokeStyle = dark ? "rgba(115,58,14,.32)" : "rgba(255,206,120,.2)"; x.lineWidth = 1 + rs() * 2.5;
     x.beginPath(); for (let y = 0; y <= TILE_H; y += 8) x.lineTo(bx + Math.sin(y / TILE_H * Math.PI * 2 * n + ph) * amp, y); x.stroke();
   }
   for (let i = 0; i < 3; i++) {   // knots
     const kx = 60 + rs() * (TRUNK_W - 120), ky = 70 + i * 150 + rs() * 40;
-    x.fillStyle = "rgba(105,50,16,.55)"; x.beginPath(); x.ellipse(kx, ky, 12, 20, 0, 0, 7); x.fill();
+    x.fillStyle = "rgba(95,48,14,.6)"; x.beginPath(); x.ellipse(kx, ky, 12, 20, 0, 0, 7); x.fill();
     x.strokeStyle = "rgba(240,170,110,.35)"; x.lineWidth = 2; x.beginPath(); x.ellipse(kx, ky, 18, 28, 0, 0, 7); x.stroke();
   }
   // vines + leaves on the trunk
   [[40, 1], [TRUNK_W - 70, 2]].forEach(([vx, n]) => {
-    x.strokeStyle = "#3e9b3a"; x.lineWidth = 4; x.beginPath();
+    x.strokeStyle = "#4d7f0a"; x.lineWidth = 4; x.beginPath();
     for (let y = 0; y <= TILE_H; y += 6) x.lineTo(vx + Math.sin(y / TILE_H * Math.PI * 2 * n) * 16, y); x.stroke();
     for (let y = 20; y < TILE_H; y += 38) { const lx = vx + Math.sin(y / TILE_H * Math.PI * 2 * n) * 16; leaf(x, lx + (y % 76 ? 8 : -8), y, (y % 76 ? .6 : -.6) + .3, 1.1); }
   });
@@ -684,25 +684,25 @@ function buildArt() {
   ART.clouds = c;
   // side branch with a leafy cluster (left; mirrored for right)
   [c, x] = layer(230, 190, k);
-  const bg = x.createLinearGradient(0, 100, 0, 140); bg.addColorStop(0, "#b8692c"); bg.addColorStop(1, "#7a3e15");
+  const bg = x.createLinearGradient(0, 100, 0, 140); bg.addColorStop(0, "#9a5e22"); bg.addColorStop(1, "#5e3816");
   x.fillStyle = bg; x.beginPath(); x.moveTo(230, 96); x.quadraticCurveTo(120, 104, 30, 120); x.lineTo(34, 138); x.quadraticCurveTo(130, 128, 230, 142); x.closePath(); x.fill();
-  for (let i = 0; i < 26; i++) { const fx = 10 + rs() * 120, fy = 40 + rs() * 90; soft(x, fx, fy, 22 + rs() * 18, ["rgba(58,170,70,A)", "rgba(92,200,80,A)", "rgba(40,140,60,A)"][i % 3], .95); }
+  for (let i = 0; i < 26; i++) { const fx = 10 + rs() * 120, fy = 40 + rs() * 90; soft(x, fx, fy, 22 + rs() * 18, ["rgba(88,140,8,A)", "rgba(122,176,30,A)", "rgba(62,112,10,A)"][i % 3], .95); }
   for (let i = 0; i < 14; i++) leaf(x, 10 + rs() * 130, 40 + rs() * 100, rs() * 6, 1.3);
   ART.branch = c;
   // blurry background leaf pad on the trunk
   [c, x] = layer(170, 50, k);
-  for (let i = 0; i < 9; i++) soft(x, 18 + i * 17, 25, 22, "rgba(70,170,70,A)", .55);
+  for (let i = 0; i < 9; i++) soft(x, 18 + i * 17, 25, 22, "rgba(86,150,24,A)", .6);
   ART.ghost = c;
   // distant blurry trees for the ground
   [c, x] = layer(W, 260, k);
-  for (let i = 0; i < 16; i++) soft(x, rs() * W, 120 + rs() * 140, 50 + rs() * 40, ["rgba(70,170,90,A)", "rgba(110,200,110,A)", "rgba(50,140,90,A)"][i % 3], .9);
+  for (let i = 0; i < 16; i++) soft(x, rs() * W, 120 + rs() * 140, 50 + rs() * 40, ["rgba(72,130,28,A)", "rgba(104,160,44,A)", "rgba(48,104,34,A)"][i % 3], .9);
   ART.far = c;
 }
 function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function leaf(c, x, y, rot, s = 1) {
   c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s);
-  c.fillStyle = "#4cc04a"; c.beginPath(); c.moveTo(0, -9); c.quadraticCurveTo(7, 0, 0, 9); c.quadraticCurveTo(-7, 0, 0, -9); c.fill();
-  c.strokeStyle = "#2f8f34"; c.lineWidth = 1; c.beginPath(); c.moveTo(0, -8); c.lineTo(0, 8); c.stroke(); c.restore();
+  c.fillStyle = "#7aaa16"; c.beginPath(); c.moveTo(0, -9); c.quadraticCurveTo(7, 0, 0, 9); c.quadraticCurveTo(-7, 0, 0, -9); c.fill();
+  c.strokeStyle = "#4a7206"; c.lineWidth = 1; c.beginPath(); c.moveTo(0, -8); c.lineTo(0, 8); c.stroke(); c.restore();
 }
 
 function drawBg() {
@@ -712,7 +712,7 @@ function drawBg() {
   // soft clouds (sky levels and behind the tree)
   const ca = 1 - clamp((m - 200) / 40, 0, 1);
   if (ca > 0 && ART.clouds) {
-    ctx.globalAlpha = ca * (m < 60 ? .9 : .75);
+    ctx.globalAlpha = ca * (m < 60 ? .8 : .7);
     const off = ((camY * .25 - t * 6) % 700 + 700) % 700;
     for (let y = -700 + off; y < H; y += 700) ctx.drawImage(ART.clouds, 0, y, W, 700);
     ctx.globalAlpha = 1;
@@ -744,14 +744,6 @@ function drawBg() {
   // giant tree
   const treeTopW = 60 * PX_M + 60, treeTop = sy(treeTopW);
   if (treeTop < H + 40 && ART.trunk) {
-    // branches behind the trunk
-    for (let k = 0; k < 12; k++) {
-      const wy = k * 230 + 160; if (wy > treeTopW - 60) break;
-      const by = sy(wy); if (by < -200 || by > H + 200) continue;
-      const left = k % 2 === 0;
-      ctx.save(); if (!left) { ctx.translate(W, 0); ctx.scale(-1, 1); }
-      ctx.drawImage(ART.branch, -20 + (k % 3) * 6, by - 120, 230, 190); ctx.restore();
-    }
     ctx.save(); ctx.beginPath(); ctx.rect(TRUNK_X, Math.max(treeTop, -2), TRUNK_W, H + 4); ctx.clip();
     const off = ((camY % TILE_H) + TILE_H) % TILE_H;
     for (let y = H - TILE_H + off; y > -TILE_H; y -= TILE_H) ctx.drawImage(ART.trunk, TRUNK_X, y, TRUNK_W, TILE_H);
@@ -759,18 +751,26 @@ function drawBg() {
     // out-of-focus leaf pads stuck to the trunk
     for (let k = 0; k < 16; k++) { const wy = k * 170 + 90, gy2 = sy(wy); if (gy2 > -60 && gy2 < H + 60 && wy < treeTopW - 80) ctx.drawImage(ART.ghost, TRUNK_X + 20 + (k * 97 % (TRUNK_W - 190)), gy2 - 25, 170, 50); }
     ctx.restore();
+    // leafy branches overlapping the trunk edges (in front, like the reference)
+    for (let k = 0; k < 24; k++) {
+      const wy = k * 120 + 100; if (wy > treeTopW - 60) break;
+      const by = sy(wy); if (by < -220 || by > H + 220) continue;
+      const left = k % 2 === 0, big = k % 4 < 2 ? 1.1 : .85;
+      ctx.save(); if (!left) { ctx.translate(W, 0); ctx.scale(-1, 1); }
+      ctx.drawImage(ART.branch, -70 + (k % 3) * 8, by - 130 * big, 210 * big, 175 * big); ctx.restore();
+    }
     // canopy at the very top
     if (treeTop > -260) {
       ctx.save(); ctx.translate(0, treeTop);
-      for (let i = 0; i < 22; i++) soft(ctx, 40 + (i * 61 % (W - 60)), 10 - (i * 37 % 140), 70, ["rgba(58,170,70,A)", "rgba(92,200,80,A)", "rgba(40,140,60,A)"][i % 3], .95);
+      for (let i = 0; i < 22; i++) soft(ctx, 40 + (i * 61 % (W - 60)), 10 - (i * 37 % 140), 70, ["rgba(88,140,8,A)", "rgba(122,176,30,A)", "rgba(62,112,10,A)"][i % 3], .95);
       ctx.restore();
     }
   }
   // ground
   if (gy < H + 10) {
-    const gg = ctx.createLinearGradient(0, gy, 0, gy + 80); gg.addColorStop(0, "#6ee35e"); gg.addColorStop(1, "#2f9e3a");
+    const gg = ctx.createLinearGradient(0, gy, 0, gy + 80); gg.addColorStop(0, "#5fa42a"); gg.addColorStop(1, "#2a6612");
     ctx.fillStyle = gg; ctx.fillRect(0, gy, W, H);
-    ctx.fillStyle = "#8ff07a"; for (let x = 0; x < W; x += 18) { ctx.beginPath(); ctx.arc(x + 9, gy + 2, 10, Math.PI, 0); ctx.fill(); }
+    ctx.fillStyle = "#86c447"; for (let x = 0; x < W; x += 18) { ctx.beginPath(); ctx.arc(x + 9, gy + 2, 10, Math.PI, 0); ctx.fill(); }
   }
   // 50 m markers
   ctx.setLineDash([6, 8]); ctx.strokeStyle = "#ffffffaa"; ctx.lineWidth = 2; ctx.font = "700 13px Fredoka, system-ui"; ctx.textAlign = "left";
@@ -788,33 +788,33 @@ function drawPlat(p) {
   if (p.seed === undefined) p.seed = Math.random() * 1000;
   if (p.L === 0) {
     // thick leafy pad with a bumpy top, like the reference
-    ctx.fillStyle = "rgba(20,70,20,.25)"; rr(ctx, x + 3, y + 4, w, 30, 15); ctx.fill();
-    const bg = ctx.createLinearGradient(0, y - 8, 0, y + 26); bg.addColorStop(0, "#74e05c"); bg.addColorStop(.55, "#3fb544"); bg.addColorStop(1, "#24833a");
+    ctx.fillStyle = "rgba(20,50,4,.38)"; rr(ctx, x + 3, y + 5, w, 30, 15); ctx.fill();
+    const bg = ctx.createLinearGradient(0, y - 8, 0, y + 26); bg.addColorStop(0, "#7cc243"); bg.addColorStop(.5, "#4fa429"); bg.addColorStop(1, "#1f7419");
     ctx.fillStyle = bg; rr(ctx, x, y - 8, w, 32, 15); ctx.fill();
     const n = Math.max(4, Math.round(w / 15)), step = (w - 14) / (n - 1);
     for (let i = 0; i < n; i++) {
       const bx = x + 7 + i * step;
-      const bgr = ctx.createRadialGradient(bx - 2, y - 11, 1, bx, y - 7, 9); bgr.addColorStop(0, "#b5f78f"); bgr.addColorStop(1, "#55c94a");
+      const bgr = ctx.createRadialGradient(bx - 2, y - 11, 1, bx, y - 7, 9); bgr.addColorStop(0, "#c6ea7e"); bgr.addColorStop(1, "#86c447");
       ctx.fillStyle = bgr; ctx.beginPath(); ctx.arc(bx, y - 6, 8, 0, 7); ctx.fill();
     }
-    ctx.fillStyle = "rgba(255,255,255,.18)"; rr(ctx, x + 8, y - 2, w - 16, 5, 3); ctx.fill();
-    ctx.strokeStyle = "rgba(20,90,30,.35)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 10, y + 18); ctx.lineTo(x + w - 10, y + 18); ctx.stroke();
+    ctx.fillStyle = "rgba(220,255,160,.16)"; rr(ctx, x + 8, y - 2, w - 16, 5, 3); ctx.fill();
+    ctx.strokeStyle = "rgba(16,70,10,.4)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 10, y + 18); ctx.lineTo(x + w - 10, y + 18); ctx.stroke();
     // hanging vine
     if (p.seed % 3 < 2) {
       const vx = x + 14 + (p.seed % (w - 28)), len = 24 + p.seed % 30;
-      ctx.strokeStyle = "#2f8f34"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(vx, y + 22);
+      ctx.strokeStyle = "#4a7a0a"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(vx, y + 22);
       ctx.quadraticCurveTo(vx - 8 + Math.sin(t * 2 + p.seed) * 3, y + 22 + len * .6, vx + 3, y + 22 + len); ctx.stroke();
       leaf(ctx, vx - 5, y + 22 + len * .5, -.8); leaf(ctx, vx + 5, y + 24 + len, .7);
     }
   } else if (p.L <= 2) {
     // puffy cloud pad
-    ctx.fillStyle = "rgba(60,110,170,.18)"; rr(ctx, x + 2, y + 6, w, 22, 11); ctx.fill();
+    ctx.fillStyle = "rgba(30,70,130,.28)"; rr(ctx, x + 2, y + 6, w, 22, 11); ctx.fill();
     for (let k = 0; k <= w; k += 20) {
       const cx = x + k, cy = y + 1 + (k / 20 % 2) * 3;
-      const cg = ctx.createRadialGradient(cx - 3, cy - 6, 2, cx, cy, 16); cg.addColorStop(0, "#ffffff"); cg.addColorStop(1, p.L === 1 ? "#ffe0f0" : "#dcefff");
+      const cg = ctx.createRadialGradient(cx - 3, cy - 6, 2, cx, cy, 16); cg.addColorStop(0, "#ffffff"); cg.addColorStop(1, p.L === 1 ? "#f7c6e0" : "#b9dbf7");
       ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(cx, cy, 15, 0, 7); ctx.fill();
     }
-    const bg = ctx.createLinearGradient(0, y - 4, 0, y + 16); bg.addColorStop(0, "#ffffff"); bg.addColorStop(1, p.L === 1 ? "#ffc9e4" : "#bfe0ff");
+    const bg = ctx.createLinearGradient(0, y - 4, 0, y + 16); bg.addColorStop(0, "#ffffff"); bg.addColorStop(1, p.L === 1 ? "#eaa3cb" : "#93c3ec");
     ctx.fillStyle = bg; rr(ctx, x - 6, y - 2, w + 12, 18, 9); ctx.fill();
   } else if (p.L === 3) {
     // floating island with grass top
@@ -856,7 +856,7 @@ function draw() {
   // falling leaves in level 1
   if (camY < 60 * PX_M) {
     if (leaves.length < 14) leaves.push({x: Math.random() * W, y: -20, s: rnd(.6, 1.2), ph: Math.random() * 6});
-    ctx.fillStyle = "#56c96a";
+    ctx.fillStyle = "#7fb51a";
     leaves.forEach(l => { l.y += 40 * l.s * (1 / 60); l.x += Math.sin(t * 2 + l.ph) * .6; ctx.save(); ctx.translate(l.x, l.y); ctx.rotate(t * 2 + l.ph); ctx.beginPath(); ctx.ellipse(0, 0, 7 * l.s, 3.5 * l.s, 0, 0, 7); ctx.fill(); ctx.restore(); });
     leaves = leaves.filter(l => l.y < H + 20);
   }

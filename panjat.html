@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#5cc8ff">
+<meta name="description" content="Panjat ke Angkasa Sihat: panjat dari pokok gergasi ke angkasa sambil menjawab soalan pemakanan sihat dan gaya hidup aktif (SDG 3).">
+<title>Panjat ke Angkasa Sihat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2d2a5a;--muted:#6b679a;--pink:#ff5fa2;--blue:#3fa9ff;--yellow:#ffd23f;--green:#3ddc84;--purple:#9b6bff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#1c1b3a;font-family:"Fredoka",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+  user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+#stage{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(100vw,62vh);overflow:hidden;touch-action:none;background:#7fd3ff}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+#fx{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:40}
+/* HUD */
+.hud{position:absolute;left:0;right:0;top:0;padding:max(10px,env(safe-area-inset-top)) 10px 0;display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:6px;z-index:5;pointer-events:none}
+.pill{white-space:nowrap;display:inline-flex;align-items:center;gap:4px;background:#ffffffe8;border-radius:99px;padding:4px 10px;font-weight:700;box-shadow:0 3px 0 #0000001f;font-size:15px}
+.left{display:flex;flex-direction:column;gap:5px;align-items:flex-start}
+.center{text-align:center}
+#height{font-size:34px;font-weight:700;color:#fff;-webkit-text-stroke:2px #2d2a5a;paint-order:stroke fill;line-height:1;text-shadow:0 3px 0 #2d2a5a}
+#height small{font-size:20px}
+#lvl{margin-top:4px;background:#3ddc84;color:#fff;border-radius:99px;padding:3px 12px;font-size:12.5px;font-weight:700;display:inline-block;border:2px solid #fff;white-space:nowrap}
+.right{display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:auto}
+.right .btns{display:flex;gap:6px}
+.ib{width:42px;height:42px;border-radius:50%;padding:0;font-size:18px;background:#ffffffe8;color:var(--ink);box-shadow:0 3px 0 #0000002a;border:0}
+#timer{position:relative;width:56px;height:56px;pointer-events:none}
+#timer svg{width:56px;height:56px;transform:rotate(-90deg)}
+#timer b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;-webkit-text-stroke:1.5px #2d2a5a;paint-order:stroke fill;padding-bottom:8px}
+#timer small{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:8.5px;font-weight:700;color:#fff;letter-spacing:.6px;text-shadow:0 1px 2px #000a}
+/* side progress */
+#prog{position:absolute;right:8px;top:24%;bottom:24%;width:14px;background:#ffffffaa;border-radius:99px;z-index:4;border:2px solid #fff}
+#progFill{position:absolute;left:0;right:0;bottom:0;height:0;border-radius:99px;background:linear-gradient(0deg,#3ddc84,#3fa9ff,#9b6bff)}
+#progFace{position:absolute;left:50%;bottom:0;width:30px;height:30px;transform:translate(-50%,50%);border-radius:50%;background:#fff;border:2px solid #fff;box-shadow:0 2px 0 #0003}
+#progFlag{position:absolute;left:50%;top:-24px;transform:translateX(-30%);font-size:18px}
+/* controls */
+.ctrl{position:absolute;left:0;right:0;bottom:0;padding:0 12px max(14px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:flex-end;z-index:5;pointer-events:none}
+.ctrl .grp{display:flex;gap:12px;pointer-events:auto}
+.mv{width:68px;height:68px;border-radius:50%;font-size:30px;padding:0;background:#ffffff59;color:#fff;border:3px solid #ffffffcc;box-shadow:0 4px 0 #0002;backdrop-filter:blur(2px)}
+.mv.on{background:#ffffffaa;color:var(--ink)}
+.tip{color:#fff;font-weight:700;font-size:13px;text-align:right;text-shadow:0 1px 3px #000c;line-height:1.35;pointer-events:none}
+.tip i{display:block;width:30px;height:30px;margin:0 0 4px auto;border-radius:50%;border:3px solid #fff;position:relative}
+.tip i::after{content:"";position:absolute;inset:6px;border-radius:50%;background:#fff}
+/* big countdown */
+#count{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:8;pointer-events:none}
+#count.show{display:flex}
+#count span{font-size:24px;font-weight:700;color:#fff;letter-spacing:3px;text-shadow:0 3px 0 #2d2a5a}
+#count b{font-size:120px;line-height:1;color:#ffd23f;-webkit-text-stroke:5px #2d2a5a;paint-order:stroke fill;text-shadow:0 8px 0 #2d2a5a;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+/* overlays */
+button{font:inherit;border:0;border-radius:16px;background:var(--blue);color:#fff;font-weight:700;padding:11px 16px;font-size:16px;cursor:pointer;box-shadow:0 5px 0 #1f7fd1;touch-action:manipulation}
+button:active{transform:translateY(4px);box-shadow:0 1px 0 #1f7fd1}
+.overlay{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:12px;background:#2d2a5a99;overflow:auto;touch-action:auto}
+.overlay.show{display:flex}
+.card{width:100%;max-height:100%;overflow:auto;background:#fff;border-radius:26px;padding:16px;text-align:center;box-shadow:0 10px 30px #0005;animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.title{font-size:34px;line-height:.95;font-weight:700;color:#3fa9ff;-webkit-text-stroke:2px #fff;paint-order:stroke fill;text-shadow:0 4px 0 #1f5fa8;margin:2px 0 6px}
+.title em{font-style:normal;display:block;font-size:42px;color:#ffc21a;text-shadow:0 4px 0 #c46a00}
+.card p{color:var(--muted);line-height:1.4;margin:6px 0;font-size:14.5px;font-weight:600}
+.levels{display:flex;gap:7px;overflow-x:auto;padding:4px 2px 8px;margin:6px -4px;scroll-snap-type:x mandatory}
+.lv{flex:0 0 31%;scroll-snap-align:start;border-radius:14px;border:3px solid #fff;box-shadow:0 3px 0 #0002;overflow:hidden;background:#eee;position:relative}
+.lv canvas{display:block;width:100%;height:58px}
+.lv div{background:#fff;font-size:11px;font-weight:700;padding:3px 2px;line-height:1.15}
+.lv div small{display:block;color:var(--muted);font-weight:600;font-size:10px}
+.lv b{position:absolute;left:4px;top:4px;width:18px;height:18px;border-radius:50%;background:#2d2a5a;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
+label.lb{display:block;text-align:left;font-size:11.5px;font-weight:700;letter-spacing:.8px;color:var(--muted);margin:8px 2px 4px}
+#name{width:100%;font:inherit;font-size:18px;font-weight:600;padding:10px 14px;border-radius:14px;border:3px solid #ffd23f;background:#fffbe8;color:var(--ink);outline:none;user-select:text;-webkit-user-select:text}
+.avatars{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.av{border:3px solid #e8e3ff;border-radius:16px;padding:4px 2px 6px;background:#f5f3ff;color:var(--ink);box-shadow:0 4px 0 #0000001a;position:relative}
+.av canvas{width:100%;max-width:96px;display:block;margin:auto}
+.av span{font-size:15px}
+.av.sel{border-color:#ff5fa2;background:#ffe3ef}
+.av.sel::after{content:"✔";position:absolute;right:6px;top:6px;width:22px;height:22px;border-radius:50%;background:#3ddc84;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center}
+.go{width:100%;margin-top:12px;font-size:22px;padding:14px;background:linear-gradient(180deg,#ffe36e,#ffc21a);color:#6b3b00;box-shadow:0 6px 0 #e09a00}
+.small{font-size:12px;color:var(--muted);margin-top:8px}.small a{color:#7a4fe0;font-weight:700}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.qn{background:#3fa9ff;color:#fff;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700}
+.qt{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:right}
+#qText{font-size:22px;line-height:1.25;margin:12px 4px 4px}
+#qIcon{font-size:40px;margin:4px 0}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}
+.answers button{background:#f3f6ff;color:var(--ink);box-shadow:0 4px 0 #d5dcf2;text-align:left;font-size:15px;line-height:1.25;padding:10px;display:flex;gap:8px;align-items:center;border:3px solid transparent}
+.answers button i{flex:0 0 26px;height:26px;border-radius:8px;color:#fff;font-style:normal;display:flex;align-items:center;justify-content:center;font-size:13px}
+.answers button:nth-child(1) i{background:#ff5f6d}.answers button:nth-child(2) i{background:#3fa9ff}.answers button:nth-child(3) i{background:#ffb020}.answers button:nth-child(4) i{background:#2fc879}
+.answers button:disabled{opacity:.45}
+.answers button.ok{opacity:1;background:#dcfce7;border-color:#22c55e}
+.answers button.no{opacity:1;background:#ffe4e6;border-color:#ef4444}
+.fb{margin-top:10px;font-weight:700;font-size:15px;line-height:1.4}
+.fb.ok{color:#16a34a}.fb.bad{color:#dc2626}
+.fb:empty{display:none}
+.stars{font-size:30px;margin:4px 0}
+.summary{text-align:left;background:#f3eeff;border-radius:14px;padding:8px 12px;margin-top:8px;font-size:14px;line-height:1.55}
+.summary div{display:flex;justify-content:space-between;gap:6px}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+@media (max-height:640px){.title{font-size:26px}.title em{font-size:32px}.lv canvas{height:44px}#qText{font-size:19px}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv"></canvas>
+
+  <div class="hud" id="hud">
+    <div class="left"><span class="pill" id="hearts">❤️❤️❤️</span><span class="pill">⭐ <span id="stars">0</span></span></div>
+    <div class="center"><div id="height">0<small>m</small></div><div id="lvl">LEVEL 1 · Pokok Gergasi</div></div>
+    <div class="right">
+      <div class="btns"><button class="ib" id="musicBtn" aria-label="Muzik">🎵</button><button class="ib" id="soundBtn" aria-label="Bunyi">🔊</button><button class="ib" id="pauseBtn" aria-label="Rehat">⏸️</button></div>
+      <div id="timer"><svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="24" fill="#2d2a5a66" stroke="#ffffff55" stroke-width="5"/><circle id="ring" cx="28" cy="28" r="24" fill="none" stroke="#ffd23f" stroke-width="5" stroke-linecap="round" stroke-dasharray="150.8" stroke-dashoffset="0"/></svg><b id="tnum">10</b><small>SOALAN</small></div>
+    </div>
+  </div>
+  <div id="prog"><div id="progFill"></div><canvas id="progFace" width="60" height="60"></canvas><div id="progFlag">🏁</div></div>
+
+  <div class="ctrl">
+    <div class="grp"><button class="mv" id="leftBtn" aria-label="Kiri">❮</button><button class="mv" id="rightBtn" aria-label="Kanan">❯</button></div>
+    <div class="tip"><i></i>Ketik = lompat<br>Ketik 2× = lompat tinggi</div>
+  </div>
+
+  <div id="count"><span id="countLbl">BERSEDIA</span><b id="countNum">3</b></div>
+
+  <div class="overlay show" id="startOv">
+    <div class="card">
+      <div class="title">PANJAT KE<em>ANGKASA SIHAT!</em></div>
+      <p>Lompat dari pokok gergasi, ke awan, hingga ke angkasa. Jawab soalan kesihatan setiap 10 saat. Sampai <b>300 m</b> untuk menang!</p>
+      <div class="levels" id="levels"></div>
+      <label class="lb" for="name">NAMA MURID</label>
+      <input id="name" maxlength="20" placeholder="Tulis nama anda" autocomplete="off">
+      <label class="lb">PILIH AVATAR</label>
+      <div class="avatars" id="avatars">
+        <button class="av" data-a="0"><canvas width="160" height="140"></canvas><span>Arnab</span></button>
+        <button class="av" data-a="1"><canvas width="160" height="140"></canvas><span>Kucing</span></button>
+        <button class="av" data-a="2"><canvas width="160" height="140"></canvas><span>Panda</span></button>
+      </div>
+      <button class="go" id="startBtn">▶ MULA MAIN</button>
+      <div class="small">SDG 3 · Pemakanan sihat &amp; gaya hidup aktif · <a href="./">Lari Sihat 2D</a> · <a href="3d.html">3D</a></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="quizOv">
+    <div class="card">
+      <div class="qhead"><span class="qn" id="qNum">SOALAN 1</span><span class="qt" id="qTopic">Isih Makanan</span></div>
+      <div id="qIcon">🥗</div>
+      <div id="qText">Soalan</div>
+      <div class="answers" id="answers"></div>
+      <div class="fb" id="fb"></div>
+      <div class="row" id="qNext" style="display:none"><button id="nextBtn">TERUSKAN ▶</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="pauseOv">
+    <div class="card"><div class="stars">⏸️</div><h2>Rehat sekejap</h2>
+      <div class="row"><button id="resumeBtn">SAMBUNG ▶</button><button id="homeBtn" style="background:#9b6bff;box-shadow:0 5px 0 #6a3fd6">MENU UTAMA</button></div></div>
+  </div>
+
+  <div class="overlay" id="endOv">
+    <div class="card">
+      <div class="stars" id="endIcon">🏆</div>
+      <div class="title" id="endTitle" style="font-size:30px">TAHNIAH!</div>
+      <p id="endText"></p>
+      <div class="summary" id="summary"></div>
+      <div class="row"><button id="againBtn" style="background:linear-gradient(180deg,#ffe36e,#ffc21a);color:#6b3b00;box-shadow:0 5px 0 #e09a00">MAIN LAGI ↻</button><button id="menuBtn" style="background:#9b6bff;box-shadow:0 5px 0 #6a3fd6">MENU</button></div>
+    </div>
+  </div>
+</div>
+<canvas id="fx"></canvas>
+<script src="lib/music.js"></script>
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+
+// ---------------- questions (same data as Lari Sihat) ----------------
+const Q = [
+ [ // 1. Food sorting
+  {q:"🍚 Nasi, roti dan mi termasuk dalam kumpulan makanan apa?",a:["Bijirin & ubi","Protein","Lemak & gula","Susu"],c:0,e:"Nasi, roti, mi dan ubi ialah bijirin: sumber tenaga utama badan."},
+  {q:"🐟 Ikan, ayam, telur dan kekacang ialah sumber…",a:["Protein","Gula","Lemak sahaja","Serat sahaja"],c:0,e:"Protein membina dan membaiki otot serta tisu badan."},
+  {q:"🥛 Susu, keju dan yogurt kaya dengan…",a:["Kalsium untuk tulang & gigi","Gula semata-mata","Kafein","Garam"],c:0,e:"Produk tenusu membekalkan kalsium untuk tulang dan gigi yang kuat."},
+  {q:"🍩🍟 Di manakah makanan bergula, berlemak dan masin dalam Piramid Makanan?",a:["Di puncak: makan sedikit sahaja","Di dasar: makan paling banyak","Di tengah: makan setiap jam","Tiada dalam piramid"],c:0,e:"Lemak, gula dan garam berada di puncak piramid, jadi ambil dalam kuantiti sedikit."},
+  {q:"🥕🍌 Sayur-sayuran dan buah-buahan membekalkan…",a:["Vitamin, mineral & serat","Lemak tepu","Gula tambahan","Kafein"],c:0,e:"Sayur dan buah kaya dengan vitamin, mineral dan serat."},
+  {q:"Isih makanan ini: 🥚 Telur masuk bakul mana?",a:["Protein","Bijirin","Lemak & gula","Minuman manis"],c:0,e:"Telur ialah sumber protein yang mudah didapati."},
+  {q:"Isih makanan ini: 🥔 Ubi kentang masuk bakul mana?",a:["Bijirin & ubi","Protein","Susu","Lemak & gula"],c:0,e:"Ubi kentang membekalkan karbohidrat seperti nasi dan roti."},
+  {q:"Isih makanan ini: 🥤 Air bergas bergula masuk bakul mana?",a:["Hadkan: tinggi gula","Makan setiap hari","Sumber protein","Sumber kalsium"],c:0,e:"Minuman bergas tinggi gula, jadi pilih air kosong."},
+  {q:"Makanan manakah paling sesuai di DASAR Piramid Makanan?",a:["Bijirin seperti nasi & roti","Kuih manis","Kerepek","Coklat"],c:0,e:"Bijirin berada di dasar piramid kerana ia sumber tenaga utama."},
+  {q:"Kekacang seperti kacang dal dan tempe ialah contoh…",a:["Protein daripada tumbuhan","Lemak & gula","Minuman","Tenusu"],c:0,e:"Kekacang dan produk soya ialah sumber protein tumbuhan."},
+ ],
+ [ // 2. Healthy food habits (animation story)
+  {q:"Mengapa sarapan pagi penting?",a:["Memberi tenaga untuk belajar & bermain","Supaya boleh tidur di kelas","Tidak penting langsung","Untuk minum air manis"],c:0,e:"Sarapan membekalkan tenaga dan membantu fokus di sekolah."},
+  {q:"Apakah amalan yang baik SEBELUM makan?",a:["Basuh tangan dengan sabun","Terus makan walaupun tangan kotor","Main telefon","Tidak perlu apa-apa"],c:0,e:"Membasuh tangan membuang kuman yang boleh menyebabkan penyakit."},
+  {q:"Minuman terbaik untuk menghilangkan dahaga ialah…",a:["Air kosong","Air bergas","Sirap pekat","Minuman tenaga"],c:0,e:"Air kosong menghidratkan badan tanpa gula tambahan."},
+  {q:"Berapa gelas air kosong yang disyorkan sehari?",a:["Kira-kira 6–8 gelas","1 gelas sahaja","Tidak perlu minum","20 gelas sekaligus"],c:0,e:"Minum kira-kira 6–8 gelas air sehari, lebih lagi bila aktif atau cuaca panas."},
+  {q:"Snek manakah pilihan lebih sihat?",a:["Buah segar","Gula-gula","Kerepek bergoreng","Donat bersalut coklat"],c:0,e:"Buah segar membekalkan vitamin dan serat dengan gula semula jadi."},
+  {q:"Apakah tabiat makan yang baik?",a:["Makan perlahan & kunyah dengan baik","Makan sangat laju","Makan sambil berlari","Langkau semua waktu makan"],c:0,e:"Makan perlahan membantu penghadaman dan kita tahu bila sudah kenyang."},
+  {q:"Mengapa kita patut kurangkan makanan segera (fast food)?",a:["Tinggi lemak, garam & gula","Terlalu banyak sayur","Terlalu banyak air","Kerana ia sihat sangat"],c:0,e:"Makanan segera biasanya tinggi lemak, garam dan gula."},
+  {q:"Bila sebaiknya berhenti makan?",a:["Bila rasa kenyang","Bila pinggan kawan habis","Hanya bila sakit perut","Tidak perlu berhenti"],c:0,e:"Dengar isyarat badan dan berhenti bila sudah kenyang."},
+  {q:"Makan sambil menonton skrin boleh menyebabkan…",a:["Makan berlebihan tanpa sedar","Badan lebih tinggi","Mata lebih sihat","Tidur lebih awal"],c:0,e:"Bila leka dengan skrin, kita mudah makan lebih daripada yang perlu."},
+  {q:"Makan bersama keluarga di meja makan membantu…",a:["Tabiat makan teratur & hubungan erat","Makan lebih banyak gula","Langkau sarapan","Tidur lewat"],c:0,e:"Makan bersama menggalakkan waktu makan teratur dan ikatan keluarga."},
+ ],
+ [ // 3. Healthy food simulator (balanced plate)
+  {q:"Pinggan Sihat Malaysia: separuh (½) pinggan patut diisi dengan…",a:["Sayur & buah","Nasi","Ayam goreng","Kuih"],c:0,e:"Konsep suku-suku-separuh: ½ sayur & buah, ¼ bijirin, ¼ protein."},
+  {q:"Dalam Pinggan Sihat, berapa bahagian untuk nasi/bijirin?",a:["Suku (¼) pinggan","Penuh pinggan","Separuh pinggan","Tiada langsung"],c:0,e:"Bijirin mengisi ¼ pinggan, protein ¼ dan sayur & buah ½."},
+  {q:"Anda sedang bina makan tengah hari. Pilih hidangan paling seimbang:",a:["Nasi + ikan bakar + sayur + buah","Nasi + nasi + kerepek","Mi segera + air bergas","Kek + aiskrim"],c:0,e:"Hidangan seimbang ada bijirin, protein, sayur dan buah."},
+  {q:"Kaedah memasak manakah lebih sihat?",a:["Rebus, kukus atau bakar","Goreng dalam minyak banyak","Goreng berulang kali","Tambah gula banyak"],c:0,e:"Merebus, mengukus dan membakar menggunakan kurang minyak."},
+  {q:"Gantikan minuman manis dalam set makanan anda dengan…",a:["Air kosong","Air bergas","Teh tarik extra manis","Sirap"],c:0,e:"Air kosong memastikan hidangan anda bebas gula tambahan."},
+  {q:"Saiz hidangan yang sesuai bermaksud…",a:["Makan secukupnya, tidak berlebihan","Tambah nasi tiga kali","Makan sehingga sakit perut","Makan sekali sehari sahaja"],c:0,e:"Kawal saiz hidangan supaya tenaga yang masuk seimbang dengan keperluan."},
+  {q:"Pilihan roti yang lebih tinggi serat ialah…",a:["Roti gandum penuh (wholemeal)","Roti manis berkrim","Donat","Biskut coklat"],c:0,e:"Bijirin penuh mengandungi lebih banyak serat dan mengenyangkan lebih lama."},
+  {q:"Membaca label makanan membantu kita…",a:["Pilih makanan kurang gula, garam & lemak","Tahu warna kotak","Makan lebih banyak","Tiada gunanya"],c:0,e:"Label nutrisi menunjukkan kandungan gula, garam dan lemak."},
+  {q:"Pelangi di pinggan (pelbagai warna sayur & buah) bermaksud…",a:["Lebih banyak jenis vitamin & mineral","Makanan berwarna tiruan","Lebih banyak gula","Tiada beza"],c:0,e:"Warna berbeza membekalkan nutrien yang berbeza."},
+  {q:"Untuk snek petang selepas bersukan, pilih…",a:["Pisang + segelas susu","Gula-gula + air bergas","Kerepek pedas","Tiada makan langsung, minum kopi"],c:0,e:"Pisang dan susu membekalkan tenaga, protein dan kalsium."},
+ ],
+ [ // 4. Calm mind (stop overthinking)
+  {q:"Apakah maksud 'overthinking'?",a:["Fikir berlebihan tentang sesuatu berulang kali","Tidur terlalu lama","Bersenam terlalu kuat","Makan terlalu cepat"],c:0,e:"Overthinking ialah memikirkan sesuatu berulang-ulang sehingga rasa risau atau penat."},
+  {q:"Cara cepat untuk tenangkan diri bila rasa cemas:",a:["Tarik nafas dalam perlahan-lahan","Tahan nafas lama","Marah orang lain","Tidak tidur semalaman"],c:0,e:"Pernafasan dalam dan perlahan membantu badan dan minda bertenang."},
+  {q:"Menulis apa yang difikirkan dalam jurnal boleh…",a:["Melegakan fikiran & susun masalah","Menambah masalah","Membuang masa sahaja","Merosakkan mata"],c:0,e:"Menulis membantu kita lihat masalah dengan lebih jelas."},
+  {q:"Bila ada masalah yang membebankan, langkah yang baik ialah…",a:["Bercakap dengan orang dipercayai","Simpan seorang diri selama-lamanya","Abaikan semua orang","Main game sepanjang malam"],c:0,e:"Berkongsi dengan keluarga, guru atau kaunselor membantu meringankan beban."},
+  {q:"Aktiviti fizikal seperti berjalan atau bersukan membantu minda kerana…",a:["Kurangkan tekanan & baiki mood","Membuat kita lebih risau","Tiada kaitan dengan minda","Menyebabkan susah tidur"],c:0,e:"Bersenam membebaskan hormon yang membantu mood dan kurangkan stres."},
+  {q:"Menggunakan telefon sehingga lewat malam boleh…",a:["Mengganggu tidur & tambah resah","Menjadikan tidur lebih nyenyak","Menambah tenaga esok","Menyihatkan mata"],c:0,e:"Cahaya skrin dan kandungan media sosial boleh mengganggu tidur."},
+  {q:"Fokus pada perkara yang BOLEH kita kawal bermaksud…",a:["Ambil tindakan kecil yang mampu dibuat","Risau tentang semua perkara","Salahkan diri sendiri","Berputus asa"],c:0,e:"Tumpu pada tindakan yang boleh dibuat sekarang mengurangkan rasa risau."},
+  {q:"Tidur yang cukup penting untuk kesihatan mental kerana…",a:["Otak berehat & emosi lebih stabil","Tidak penting langsung","Membuat kita lebih mudah marah","Hanya untuk orang tua"],c:0,e:"Tidur yang cukup membantu otak memproses emosi dan ingatan."},
+  {q:"Teknik 5-4-3-2-1 (cari 5 benda dilihat, 4 disentuh…) digunakan untuk…",a:["Bawa fikiran kembali ke masa kini","Mengira markah ujian","Bersenam","Memasak"],c:0,e:"Teknik grounding ini membantu minda berhenti berfikir berlebihan."},
+  {q:"Apakah sikap yang sihat terhadap kesilapan?",a:["Belajar daripadanya & cuba lagi","Fikir tentangnya setiap malam","Malu sehingga tidak mahu mencuba","Salahkan orang lain"],c:0,e:"Kesilapan ialah peluang belajar. Bersikap baik dengan diri sendiri."},
+ ],
+ [ // 5. Daily healthy routine (habit planner)
+  {q:"Berapa lama remaja digalakkan aktif secara fizikal setiap hari?",a:["Sekurang-kurangnya 60 minit","5 minit sahaja","Sekali seminggu","Tidak perlu"],c:0,e:"WHO menggalakkan kanak-kanak dan remaja aktif sekurang-kurangnya 60 minit sehari."},
+  {q:"Berapa jam tidur yang diperlukan oleh remaja?",a:["Kira-kira 8–10 jam","3 jam","15 jam","Tidak tentu, tidur bila-bila"],c:0,e:"Remaja memerlukan kira-kira 8–10 jam tidur setiap malam."},
+  {q:"Untuk membina tabiat baru, cara paling berkesan ialah…",a:["Mula kecil & buat secara konsisten","Buat semuanya sekaligus","Buat sekali sahaja","Tunggu mood datang"],c:0,e:"Tabiat terbina melalui langkah kecil yang diulang setiap hari."},
+  {q:"Menanda tabiat (habit tracker) dalam planner membantu kita…",a:["Lihat kemajuan & kekal bermotivasi","Lupa tabiat","Tidak perlu usaha","Tidur lewat"],c:0,e:"Melihat rantaian hari yang berjaya memberi motivasi untuk teruskan."},
+  {q:"Duduk terlalu lama (contoh main gajet berjam-jam) boleh dikurangkan dengan…",a:["Bangun & bergerak setiap 30–60 minit","Duduk lebih lama","Baring sahaja","Makan snek lagi"],c:0,e:"Rehat sekejap untuk berdiri dan bergerak memecahkan tempoh duduk yang lama."},
+  {q:"Rutin malam yang membantu tidur nyenyak ialah…",a:["Tutup skrin awal & tidur pada waktu sama","Minum kopi sebelum tidur","Main game sampai tengah malam","Makan besar tepat sebelum tidur"],c:0,e:"Waktu tidur yang tetap dan kurang skrin membantu tidur lebih berkualiti."},
+  {q:"Contoh matlamat harian yang SMART dan sihat:",a:["Berjalan 20 minit selepas sekolah setiap hari","Jadi sihat entah bila","Tidak makan langsung","Bersenam 5 jam sekali"],c:0,e:"Matlamat yang jelas, kecil dan boleh diukur lebih mudah dicapai."},
+  {q:"Peringatan (reminder) minum air dalam aplikasi berguna untuk…",a:["Pastikan badan cukup air sepanjang hari","Minum air bergas","Kurangkan air","Tiada guna"],c:0,e:"Peringatan membantu kita ingat untuk minum air secara berkala."},
+  {q:"Aktiviti manakah contoh gaya hidup aktif?",a:["Berbasikal, bermain bola atau berjalan pantas","Menonton TV sepanjang hari","Duduk berjam-jam","Tidur sepanjang petang"],c:0,e:"Aktiviti yang menggerakkan badan menguatkan jantung dan otot."},
+  {q:"Jika terlepas satu hari tabiat sihat, apa yang patut dibuat?",a:["Sambung semula esok tanpa putus asa","Berhenti terus","Marah diri sendiri","Buang planner"],c:0,e:"Terlepas sehari adalah biasa. Yang penting teruskan semula."},
+ ],
+];
+
+
+// 5 levels x 60 m = 300 m
+const LEVELS = [
+  {name:"Pokok Gergasi", topic:"Isih Makanan", icon:"🧺", from:0},
+  {name:"Awan Pelangi", topic:"Tabiat Makan Sihat", icon:"🍽️", from:60},
+  {name:"Langit Biru", topic:"Simulator Makanan Sihat", icon:"🥗", from:120},
+  {name:"Senja Tenang", topic:"Minda Tenang", icon:"🧘", from:180},
+  {name:"Angkasa Lepas", topic:"Rutin Harian Sihat", icon:"📅", from:240},
+];
+const GOAL = 300, PX_M = 40, Q_EVERY = 10;
+const AVATARS = ["Arnab", "Kucing", "Panda"];
+const GRAV = 1500, JUMP_V = 650, DJUMP_V = 600, MOVE = 270;
+
+// cute animal avatars, drawn standing on (x, y). sw = leg swing, mood: 1 happy, 0 tired
+function drawAnimal(c, type, x, y, sw, mood, tt) {
+  const C = [
+    {body: "#ffffff", line: "#e7d8de", ear: "#ffffff", inner: "#ffb3c7", cheek: "#ffb3c7", feet: "#f4e6ea"},   // rabbit
+    {body: "#ffb35c", line: "#e48f33", ear: "#ffb35c", inner: "#ffd2a8", cheek: "#ff8f8f", feet: "#fff1df"},   // cat
+    {body: "#ffffff", line: "#dcdcdc", ear: "#2b2b2b", inner: "#2b2b2b", cheek: "#ffb3c7", feet: "#2b2b2b"},   // panda
+  ][type];
+  c.save(); c.lineCap = "round"; c.lineJoin = "round";
+  // tail
+  if (type === 1) { c.strokeStyle = C.line; c.lineWidth = 8; c.beginPath(); c.moveTo(x - 18, y - 26); c.quadraticCurveTo(x - 40, y - 40 + Math.sin(tt * 8) * 6, x - 34, y - 58); c.stroke(); }
+  if (type === 0) { c.fillStyle = "#fff"; c.strokeStyle = C.line; c.lineWidth = 2; c.beginPath(); c.arc(x - 20, y - 26, 8, 0, 7); c.fill(); c.stroke(); }
+  // feet
+  c.fillStyle = C.feet;
+  c.beginPath(); c.ellipse(x - 8 + sw * 9, y - 5, 9, 6, 0, 0, 7); c.fill();
+  c.beginPath(); c.ellipse(x + 9 - sw * 9, y - 5, 9, 6, 0, 0, 7); c.fill();
+  // body
+  c.fillStyle = type === 2 ? "#2b2b2b" : C.body; c.strokeStyle = C.line; c.lineWidth = 2;
+  c.beginPath(); c.ellipse(x, y - 24, 19, 18, 0, 0, 7); c.fill(); if (type !== 2) c.stroke();
+  c.fillStyle = type === 2 ? "#ffffff" : "#ffffff99"; c.beginPath(); c.ellipse(x + 2, y - 21, 11, 11, 0, 0, 7); c.fill();
+  // scarf (SDG green)
+  c.fillStyle = "#2fa66a"; rrc(c, x - 16, y - 42, 32, 8, 4); c.fill();
+  c.beginPath(); c.moveTo(x - 12, y - 36); c.lineTo(x - 22 - Math.sin(tt * 10) * 3, y - 28); c.lineTo(x - 8, y - 34); c.fill();
+  // ears (behind head)
+  if (type === 0) {
+    [[-9, -.15], [8, .15]].forEach(([dx, r]) => {
+      c.save(); c.translate(x + dx, y - 68); c.rotate(r + Math.sin(tt * 6 + dx) * .05);
+      c.fillStyle = C.ear; c.strokeStyle = C.line; c.beginPath(); c.ellipse(0, -18, 8, 22, 0, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = C.inner; c.beginPath(); c.ellipse(0, -18, 4, 15, 0, 0, 7); c.fill(); c.restore();
+    });
+  } else if (type === 1) {
+    [[-15, -1], [15, 1]].forEach(([dx, d]) => {
+      c.fillStyle = C.ear; c.strokeStyle = C.line; c.beginPath(); c.moveTo(x + dx - 9 * d, y - 70); c.lineTo(x + dx + 2 * d, y - 92); c.lineTo(x + dx + 10 * d, y - 66); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = C.inner; c.beginPath(); c.moveTo(x + dx - 4 * d, y - 72); c.lineTo(x + dx + 2 * d, y - 85); c.lineTo(x + dx + 6 * d, y - 70); c.closePath(); c.fill();
+    });
+  } else {
+    c.fillStyle = C.ear; c.beginPath(); c.arc(x - 18, y - 80, 9, 0, 7); c.arc(x + 18, y - 80, 9, 0, 7); c.fill();
+  }
+  // head
+  c.fillStyle = C.body; c.strokeStyle = C.line; c.lineWidth = 2;
+  c.beginPath(); c.ellipse(x, y - 62, 25, 22, 0, 0, 7); c.fill(); c.stroke();
+  if (type === 1) { c.fillStyle = C.line; [-6, 0, 6].forEach(d => { c.fillRect(x + d - 1.5, y - 84, 3, 8); }); }
+  // eyes
+  const ex = 9, eyY = y - 63;
+  if (type === 2) { c.fillStyle = "#2b2b2b"; [-1, 1].forEach(d => { c.beginPath(); c.ellipse(x + d * ex, eyY + 1, 7, 9, d * -.4, 0, 7); c.fill(); }); }
+  [-1, 1].forEach(d => {
+    if (mood) {
+      c.fillStyle = type === 2 ? "#fff" : "#2b2b2b"; c.beginPath(); c.arc(x + d * ex, eyY, 4.5, 0, 7); c.fill();
+      c.fillStyle = type === 2 ? "#2b2b2b" : "#fff"; c.beginPath(); c.arc(x + d * ex + 1.5, eyY - 1.5, 1.7, 0, 7); c.fill();
+    } else {
+      c.strokeStyle = type === 2 ? "#fff" : "#2b2b2b"; c.lineWidth = 2.5; c.beginPath(); c.arc(x + d * ex, eyY + 2, 4, Math.PI + .3, -.3); c.stroke();
+    }
+  });
+  // cheeks
+  c.fillStyle = C.cheek; c.globalAlpha = .75;
+  c.beginPath(); c.ellipse(x - 16, y - 54, 5, 3.5, 0, 0, 7); c.ellipse(x + 16, y - 54, 5, 3.5, 0, 0, 7); c.fill(); c.globalAlpha = 1;
+  // nose + mouth
+  c.fillStyle = type === 0 ? "#ff8fab" : type === 1 ? "#ff7b7b" : "#2b2b2b";
+  c.beginPath(); c.moveTo(x - 3, y - 57); c.lineTo(x + 3, y - 57); c.lineTo(x, y - 54); c.closePath(); c.fill();
+  c.strokeStyle = "#5a3b3b"; c.lineWidth = 1.8; c.beginPath();
+  if (mood) { c.arc(x - 3, y - 53, 3, .2, Math.PI - .2); c.moveTo(x + 6, y - 53); c.arc(x + 3, y - 53, 3, .2, Math.PI - .2); }
+  else { c.moveTo(x - 4, y - 49); c.quadraticCurveTo(x, y - 53, x + 4, y - 49); }
+  c.stroke();
+  if (type === 1) { c.strokeStyle = C.line; c.lineWidth = 1.5; [-1, 1].forEach(d => { c.beginPath(); c.moveTo(x + d * 12, y - 55); c.lineTo(x + d * 26, y - 58); c.moveTo(x + d * 12, y - 52); c.lineTo(x + d * 26, y - 51); c.stroke(); }); }
+  c.restore();
+}
+function rrc(c, x, y, w, h, r) { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+
+
+// ---------------- sound ----------------
+let sound = true, ac = null;
+function beep(f, d = .1, type = "sine", v = .08, slide = 0) {
+  if (!sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const o = ac.createOscillator(), g = ac.createGain(), n = ac.currentTime;
+    o.type = type; o.frequency.setValueAtTime(f, n);
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, n + d);
+    g.gain.setValueAtTime(v, n); g.gain.exponentialRampToValueAtTime(.0001, n + d);
+    o.connect(g); g.connect(ac.destination); o.start(n); o.stop(n + d);
+  } catch (e) {}
+}
+const sfx = {
+  jump: () => beep(420, .15, "square", .05, 760), jump2: () => beep(620, .18, "square", .05, 1250),
+  land: () => beep(220, .05, "triangle", .05), star: () => { beep(880, .08, "triangle", .07); setTimeout(() => beep(1320, .1, "triangle", .07), 70); },
+  hit: () => beep(180, .3, "sawtooth", .08, 70), ok: () => [523, 659, 784].forEach((f, i) => setTimeout(() => beep(f, .14, "triangle", .08), i * 90)),
+  bad: () => beep(260, .3, "square", .05, 150), tick: () => beep(760, .06, "square", .04), go: () => beep(1040, .2, "square", .06),
+  level: () => [392, 523, 659, 784].forEach((f, i) => setTimeout(() => beep(f, .12, "triangle", .07), i * 80)),
+};
+const KM = window.KidsMusic || {start(){}, stop(){}, pause(){}, duck(){}, setZone(){}, setEnabled(){}, isEnabled(){ return false; }, fanfare(){}};
+
+// ---------------- confetti ----------------
+const fx = $("fx"), fctx = fx.getContext("2d"); let confetti = [];
+function sizeFx() { fx.width = innerWidth * devicePixelRatio; fx.height = innerHeight * devicePixelRatio; }
+function burst(n = 90) {
+  const C = ["#ff5fa2", "#ffd23f", "#3fa9ff", "#3ddc84", "#9b6bff", "#ff8a3d"];
+  for (let i = 0; i < n; i++) confetti.push({x: fx.width / 2, y: fx.height * .4, vx: (Math.random() - .5) * 24 * devicePixelRatio, vy: (-Math.random() * 20 - 6) * devicePixelRatio,
+    r: Math.random() * 6, s: (6 + Math.random() * 6) * devicePixelRatio, c: C[i % 6], life: 1.6 + Math.random()});
+}
+function drawFx(dt) {
+  if (!confetti.length) { if (fx._d) { fctx.clearRect(0, 0, fx.width, fx.height); fx._d = false; } return; }
+  fx._d = true; fctx.clearRect(0, 0, fx.width, fx.height);
+  confetti.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .9 * devicePixelRatio; p.vx *= .985; p.r += .2; p.life -= dt;
+    fctx.save(); fctx.translate(p.x, p.y); fctx.rotate(p.r); fctx.fillStyle = p.c; fctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); fctx.restore(); });
+  confetti = confetti.filter(p => p.life > 0 && p.y < fx.height + 40);
+}
+
+// ---------------- helpers ----------------
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.random() * a.length | 0];
+const show = (id, on) => $(id).classList.toggle("show", on);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+const rgb = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+
+// ---------------- canvas ----------------
+const cv = $("cv"), ctx = cv.getContext("2d");
+const W = 480; let H = 800, scale = 1;
+function resize() {
+  const r = $("stage").getBoundingClientRect();
+  scale = r.width / W; H = Math.round(r.height / scale);
+  cv.width = Math.round(r.width * devicePixelRatio); cv.height = Math.round(r.height * devicePixelRatio);
+  sizeFx();
+}
+addEventListener("resize", resize);
+
+// ---------------- state ----------------
+let state = "menu", t = 0, camY = 0, maxY = 0, hearts = 3, stars = 0, qTimer = Q_EVERY, qCount = 0, lvl = 0;
+let plats = [], items = [], hazards = [], parts = [], leaves = [], nextPlatY = 0, inv = 0, countT = 0, countLbl = "", afterCount = null;
+let avatar = 0, playerName = "", pools = [], stats = [], startTime = 0, playTime = 0, lastSafe = null;
+const P = {x: W / 2, y: 0, vx: 0, vy: 0, ground: true, plat: null, jumps: 0, face: 1, run: 0};
+const keys = {left: false, right: false};
+try { avatar = +localStorage.getItem("lariSihatAvatar") || 0; playerName = localStorage.getItem("panjatName") || ""; } catch (e) {}
+if (!(avatar >= 0 && avatar < 3)) avatar = 0;
+$("name").value = playerName;
+
+const levelAt = m => clamp(Math.floor(m / 60), 0, 4);
+
+// sky colours by height (metres)
+const SKY = [
+  [0, [120, 214, 255], [205, 244, 255]],
+  [60, [255, 170, 214], [255, 233, 246]],
+  [120, [80, 182, 255], [196, 233, 255]],
+  [180, [255, 150, 120], [196, 160, 255]],
+  [240, [36, 30, 92], [76, 52, 150]],
+  [300, [14, 12, 48], [40, 26, 96]],
+];
+function skyAt(m) {
+  for (let i = 0; i < SKY.length - 1; i++) {
+    const a = SKY[i], b = SKY[i + 1];
+    if (m <= b[0]) { const k = clamp((m - a[0]) / (b[0] - a[0]), 0, 1); const e = k < .7 ? 0 : (k - .7) / .3; return [mix(a[1], b[1], e), mix(a[2], b[2], e)]; }
+  }
+  return [SKY[5][1], SKY[5][2]];
+}
+
+// ---------------- world generation ----------------
+function addPlat(y) {
+  const m = y / PX_M, L = levelAt(m);
+  const w = rnd(92, 130) - L * 6;
+  const prev = plats[plats.length - 1];
+  let x = rnd(24, W - 24 - w - 24);
+  if (prev) { const pc = prev.x + prev.w / 2; x = clamp(pc + rnd(-210, 210) - w / 2, 18, W - 40 - w); }
+  const p = {x, y, w, L, vx: 0, ox: x, ph: Math.random() * 6};
+  if (L >= 2 && Math.random() < .18 + L * .06) { p.vx = rnd(40, 70) * (Math.random() < .5 ? -1 : 1); }
+  plats.push(p);
+  if (Math.random() < .42) items.push({x: x + w / 2 + rnd(-w / 3, w / 3), y: y + 34, e: pick(["🍎", "🍌", "🥦", "🥕", "🐟", "🥛", "💧", "🍇"]), got: false, plat: p, dx: 0});
+  if (L >= 1 && Math.random() < .1 + L * .05) hazards.push({x: rnd(30, W - 30), y: y + rnd(50, 90), vx: rnd(50, 90) * (Math.random() < .5 ? -1 : 1), e: pick(["🍩", "🍟", "🥤", "🍭", "🍔"]), hit: false});
+}
+function genUntil(top) {
+  while (nextPlatY < top && nextPlatY < GOAL * PX_M + 40) {
+    const L = levelAt(nextPlatY / PX_M);
+    nextPlatY += rnd(86, 124) + L * 3 + (Math.random() < .12 ? 70 : 0);   // occasional gap that needs a double jump
+    addPlat(Math.min(nextPlatY, GOAL * PX_M + 40));
+  }
+}
+
+function reset() {
+  t = 0; camY = 0; maxY = 0; hearts = 3; stars = 0; qTimer = Q_EVERY; qCount = 0; lvl = 0; inv = 0; playTime = 0;
+  plats = [{x: 0, y: 0, w: W, L: 0, vx: 0, ox: 0, ph: 0, ground: true}]; items = []; hazards = []; parts = []; nextPlatY = 0;
+  genUntil(H + 400);
+  Object.assign(P, {x: W / 2, y: 0, vx: 0, vy: 0, ground: true, plat: plats[0], jumps: 0, face: 1});
+  lastSafe = plats[0];
+  pools = Q.map(z => shuffle(z)); stats = LEVELS.map(() => ({ok: 0, all: 0}));
+  hud();
+}
+
+// ---------------- HUD ----------------
+function hud() {
+  const m = Math.floor(maxY / PX_M);
+  $("height").innerHTML = `${Math.min(GOAL, m)}<small>m</small>`;
+  $("hearts").textContent = "❤️".repeat(hearts) + "🤍".repeat(Math.max(0, 3 - hearts));
+  $("stars").textContent = stars;
+  $("lvl").textContent = `LEVEL ${lvl + 1} · ${LEVELS[lvl].name}`;
+  $("lvl").style.background = ["#3ddc84", "#ff5fa2", "#3fa9ff", "#ff8a3d", "#9b6bff"][lvl];
+  const k = clamp(maxY / PX_M / GOAL, 0, 1);
+  $("progFill").style.height = k * 100 + "%"; $("progFace").style.bottom = k * 100 + "%";
+  const sec = Math.ceil(qTimer);
+  $("tnum").textContent = sec; $("ring").style.strokeDashoffset = 150.8 * (1 - qTimer / Q_EVERY);
+}
+
+// ---------------- flow ----------------
+function countdown(label, then) {
+  state = "count"; countT = 3; countLbl = label; afterCount = then;
+  $("countLbl").textContent = label; $("countNum").textContent = "3"; show("count", true); sfx.tick();
+}
+function start() {
+  playerName = ($("name").value || "").trim().slice(0, 20) || "Pemain";
+  try { localStorage.setItem("panjatName", playerName); } catch (e) {}
+  ["startOv", "endOv", "pauseOv", "quizOv"].forEach(id => show(id, false));
+  reset(); KM.setZone(0); KM.start();
+  countdown("BERSEDIA", () => { state = "play"; });
+}
+$("startBtn").onclick = start;
+$("againBtn").onclick = start;
+const toMenu = () => { state = "menu"; KM.stop(); ["endOv", "pauseOv", "quizOv", "count"].forEach(id => show(id, false)); reset(); show("startOv", true); };
+$("menuBtn").onclick = toMenu; $("homeBtn").onclick = toMenu;
+function togglePause() {
+  if (state === "play") { state = "paused"; show("pauseOv", true); KM.pause(true); }
+  else if (state === "paused") { show("pauseOv", false); KM.pause(false); countdown("SAMBUNG DALAM", () => { state = "play"; }); }
+}
+$("pauseBtn").onclick = togglePause; $("resumeBtn").onclick = togglePause;
+$("soundBtn").onclick = () => { sound = !sound; $("soundBtn").textContent = sound ? "🔊" : "🔇"; };
+const musicLabel = () => $("musicBtn").textContent = KM.isEnabled() ? "🎵" : "🔕";
+$("musicBtn").onclick = () => { KM.setEnabled(!KM.isEnabled()); musicLabel(); }; musicLabel();
+document.addEventListener("visibilitychange", () => { if (document.hidden && state === "play") togglePause(); });
+
+// ---------------- quiz ----------------
+let curQ = null;
+const ICONS = ["🧺", "🍽️", "🥗", "🧘", "📅"];
+function askQuiz() {
+  state = "quiz"; KM.duck(true); qCount++;
+  if (!pools[lvl].length) pools[lvl] = shuffle(Q[lvl]);
+  curQ = pools[lvl].pop();
+  const em = (curQ.q.match(/^\p{Extended_Pictographic}[️‍\p{Extended_Pictographic}]*/u) || [])[0];
+  $("qIcon").textContent = em ? "" : ICONS[lvl];
+  $("qIcon").style.display = em ? "none" : "";
+  $("qNum").textContent = `SOALAN ${qCount}`;
+  $("qTopic").textContent = `${LEVELS[lvl].icon} ${LEVELS[lvl].topic}`;
+  $("qText").textContent = curQ.q;
+  $("fb").textContent = ""; $("fb").className = "fb"; $("qNext").style.display = "none";
+  const box = $("answers"); box.innerHTML = "";
+  shuffle(curQ.a.map((txt, i) => ({txt, i}))).forEach((o, k) => {
+    const b = document.createElement("button");
+    b.innerHTML = `<i>${"ABCD"[k]}</i><span></span>`; b.querySelector("span").textContent = o.txt; b.dataset.i = o.i;
+    b.onclick = () => answer(o.i, b); box.appendChild(b);
+  });
+  show("quizOv", true);
+}
+function answer(i, btn) {
+  const ok = i === curQ.c, s = stats[lvl]; s.all++;
+  [...$("answers").children].forEach(b => { b.disabled = true; if (+b.dataset.i === curQ.c) b.classList.add("ok"); });
+  const fb = $("fb");
+  if (ok) { s.ok++; stars += 3; sfx.ok(); burst(); fb.className = "fb ok"; fb.textContent = `Betul! Hebat! ⭐ +3. ${curQ.e}`; }
+  else { btn.classList.add("no"); hearts--; sfx.bad(); fb.className = "fb bad"; fb.textContent = `Belum tepat, -1 ❤️. ${curQ.e}`; }
+  hud(); $("qNext").style.display = "flex";
+  $("nextBtn").textContent = hearts <= 0 ? "LIHAT KEPUTUSAN ▶" : "TERUSKAN ▶";
+}
+$("nextBtn").onclick = () => {
+  show("quizOv", false); KM.duck(false); qTimer = Q_EVERY;
+  if (hearts <= 0) return finish(false);
+  countdown("SAMBUNG DALAM", () => { state = "play"; });
+};
+
+// ---------------- input ----------------
+function jump() {
+  if (state !== "play") return;
+  if (P.ground) { P.vy = JUMP_V; P.ground = false; P.plat = null; P.jumps = 1; sfx.jump(); dust(P.x, P.y, "#ffffff"); }
+  else if (P.jumps < 2) { P.vy = DJUMP_V; P.jumps = 2; sfx.jump2(); dust(P.x, P.y, "#fff59a"); }
+}
+function dust(x, y, c) { for (let i = 0; i < 8; i++) parts.push({x, y, vx: rnd(-90, 90), vy: rnd(20, 120), life: .45, c, r: rnd(2, 4)}); }
+const stage = $("stage");
+stage.addEventListener("pointerdown", e => {
+  if (e.target.closest("button,.overlay,input")) return;
+  e.preventDefault(); jump();
+});
+function holdBtn(id, k) {
+  const b = $(id);
+  const on = e => { e.preventDefault(); keys[k] = true; b.classList.add("on"); };
+  const off = () => { keys[k] = false; b.classList.remove("on"); };
+  b.addEventListener("pointerdown", on); ["pointerup", "pointerleave", "pointercancel"].forEach(ev => b.addEventListener(ev, off));
+}
+holdBtn("leftBtn", "left"); holdBtn("rightBtn", "right");
+addEventListener("keydown", e => {
+  if (document.activeElement === $("name")) { if (e.key === "Enter") start(); return; }
+  if (state === "quiz") {
+    const n = {KeyA: 0, KeyB: 1, KeyC: 2, KeyD: 3, Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3}[e.code];
+    if (n !== undefined) { const b = $("answers").children[n]; if (b && !b.disabled) b.click(); }
+    else if (e.code === "Enter" && $("qNext").style.display !== "none") $("nextBtn").click();
+    return;
+  }
+  if (["ArrowLeft", "KeyA"].includes(e.code)) keys.left = true;
+  if (["ArrowRight", "KeyD"].includes(e.code)) keys.right = true;
+  if (["Space", "ArrowUp", "KeyW"].includes(e.code)) { e.preventDefault(); if (!e.repeat) jump(); }
+  if (e.code === "KeyP" || e.code === "Escape") togglePause();
+});
+addEventListener("keyup", e => {
+  if (["ArrowLeft", "KeyA"].includes(e.code)) keys.left = false;
+  if (["ArrowRight", "KeyD"].includes(e.code)) keys.right = false;
+});
+
+// ---------------- update ----------------
+function update(dt) {
+  t += dt; playTime += dt; if (inv > 0) inv -= dt;
+  // question timer
+  qTimer -= dt;
+  if (qTimer <= 0) { qTimer = 0; hud(); askQuiz(); return; }
+  // moving platforms
+  plats.forEach(p => { if (p.vx) { const nx = p.x + p.vx * dt; if (nx < 10 || nx + p.w > W - 34) p.vx *= -1; else { p.dx = nx - p.x; p.x = nx; } } else p.dx = 0; });
+  // horizontal
+  const dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+  P.vx = dir * MOVE; if (dir) P.face = dir;
+  P.x = clamp(P.x + P.vx * dt + (P.ground && P.plat ? P.plat.dx || 0 : 0), 16, W - 40);
+  if (P.ground && dir) P.run += dt * 12;
+  // walked off the edge
+  if (P.ground && P.plat && !P.plat.ground && (P.x < P.plat.x - 6 || P.x > P.plat.x + P.plat.w + 6)) { P.ground = false; P.plat = null; P.jumps = 1; }
+  // vertical
+  if (!P.ground) {
+    const prevY = P.y;
+    P.vy -= GRAV * dt; P.y += P.vy * dt;
+    if (P.vy <= 0) {
+      for (const p of plats) {
+        if (prevY >= p.y - 1 && P.y <= p.y && P.x >= p.x - 8 && P.x <= p.x + p.w + 8) {
+          P.y = p.y; P.vy = 0; P.ground = true; P.plat = p; P.jumps = 0; sfx.land(); lastSafe = p; break;
+        }
+      }
+    }
+  }
+  if (P.y > maxY) maxY = P.y;
+  // camera only climbs
+  camY = Math.max(camY, P.y - H * .38);
+  genUntil(camY + H + 300);
+  // fell off the bottom of the screen
+  if (P.y < camY - 60) {
+    sfx.hit(); inv = 1.2;
+    const s = lastSafe || plats[0];
+    Object.assign(P, {x: s.x + s.w / 2, y: s.y, vy: 0, ground: true, plat: s, jumps: 0});
+    camY = Math.max(0, s.y - H * .38);
+    floatMsg("Oops! Cuba lagi 💪");
+  }
+  // level
+  const m = maxY / PX_M, L = levelAt(m);
+  if (L !== lvl) { lvl = L; sfx.level(); burst(60); KM.setZone(lvl); floatMsg(`LEVEL ${lvl + 1} · ${LEVELS[lvl].name}!`); }
+  if (m >= GOAL) return finish(true);
+  // items
+  const ph = {x: P.x - 16, y: P.y, w: 32, h: 56};
+  for (const it of items) {
+    if (it.got) continue;
+    if (it.plat && it.plat.dx) it.x += it.plat.dx;
+    if (Math.abs(it.x - P.x) < 28 && it.y > P.y - 10 && it.y < P.y + 70) { it.got = true; stars++; sfx.star(); dust(it.x, it.y, "#ffe36e"); }
+  }
+  for (const h of hazards) {
+    h.x += h.vx * dt; if (h.x < 20 || h.x > W - 50) h.vx *= -1;
+    if (!h.hit && inv <= 0 && Math.abs(h.x - P.x) < 26 && h.y > P.y + 4 && h.y < P.y + 64) {
+      h.hit = true; hearts--; inv = 1.5; sfx.hit(); floatMsg("Elak makanan ringan! -1 ❤️"); hud();
+      if (hearts <= 0) return finish(false);
+    }
+  }
+  // cleanup far below
+  const low = camY - 200;
+  plats = plats.filter(p => p.y > low || p === lastSafe);
+  items = items.filter(i => !i.got && i.y > low); hazards = hazards.filter(h => !h.hit && h.y > low);
+  parts.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy -= 300 * dt; p.life -= dt; }); parts = parts.filter(p => p.life > 0);
+  hud();
+}
+
+function floatMsg(txt) {
+  const el = document.createElement("div"); el.textContent = txt;
+  el.style.cssText = "position:absolute;left:50%;top:26%;transform:translateX(-50%);background:#ff5fa2;color:#fff;font-weight:700;font-size:18px;padding:7px 14px;border-radius:14px;border:3px solid #fff;z-index:9;pointer-events:none;transition:all 1.5s ease;white-space:nowrap;box-shadow:0 4px 0 #c92f72";
+  stage.appendChild(el); requestAnimationFrame(() => { el.style.top = "19%"; el.style.opacity = "0"; }); setTimeout(() => el.remove(), 1600);
+}
+
+function finish(win) {
+  state = "over"; KM.stop(); if (win) { KM.fanfare(); burst(160); setTimeout(() => burst(160), 500); }
+  const m = Math.min(GOAL, Math.floor(maxY / PX_M));
+  const okAll = stats.reduce((a, s) => a + s.ok, 0), all = stats.reduce((a, s) => a + s.all, 0);
+  $("endIcon").textContent = win ? "🏆🚀" : "💚";
+  $("endTitle").textContent = win ? `TAHNIAH, ${playerName.toUpperCase()}!` : `CUBA LAGI, ${playerName.toUpperCase()}!`;
+  $("endText").innerHTML = win ? `Anda berjaya sampai ke angkasa (300 m)! 🌟` : `Anda sampai <b>${m} m</b> (Level ${lvl + 1}: ${LEVELS[lvl].name}).`;
+  let best = 0; try { best = +localStorage.getItem("panjatBest") || 0; if (m > best) localStorage.setItem("panjatBest", m); } catch (e) {}
+  $("summary").innerHTML = `<div><span>⭐ Bintang</span><b>${stars}</b></div><div><span>🧠 Jawapan betul</span><b>${okAll}/${all}</b></div>` +
+    `<div><span>⏱️ Masa</span><b>${Math.floor(playTime / 60)}:${String(Math.floor(playTime % 60)).padStart(2, "0")}</b></div>` +
+    `<div><span>🏅 Ketinggian terbaik</span><b>${Math.max(best, m)} m</b></div>` +
+    "<hr style='border:0;border-top:2px dashed #d9d2ff'>" +
+    LEVELS.map((L, i) => `<div><span>${L.icon} ${L.topic}</span><span>${stats[i].all ? `${stats[i].ok}/${stats[i].all}` : "–"}</span></div>`).join("");
+  setTimeout(() => show("endOv", true), 500);
+}
+
+// ---------------- drawing ----------------
+const sy = y => H - (y - camY);      // world height -> screen y
+function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+const starField = Array.from({length: 90}, () => [Math.random() * W, Math.random(), Math.random() * 1.6 + .4]);
+const cloudsBg = Array.from({length: 10}, (_, i) => [Math.random() * W, i * 260 + Math.random() * 100, .6 + Math.random() * .7]);
+function puff(c, x, y, s, col) {
+  c.fillStyle = col; c.beginPath(); c.arc(x, y, 22 * s, 0, 7); c.arc(x + 26 * s, y - 12 * s, 28 * s, 0, 7); c.arc(x + 56 * s, y, 22 * s, 0, 7); c.fill(); c.fillRect(x, y, 56 * s, 22 * s);
+}
+function drawBg() {
+  const m = (camY + H / 2) / PX_M, [top, bot] = skyAt(m);
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, rgb(top)); g.addColorStop(1, rgb(bot));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // stars fade in from 200 m
+  const sa = clamp((m - 200) / 50, 0, 1);
+  if (sa > 0) { ctx.fillStyle = "#fff"; starField.forEach(([x, k, r], i) => { ctx.globalAlpha = sa * (.5 + .5 * Math.sin(t * 2 + i)); const yy = ((k * H * 2 + camY * .2) % (H + 20)) - 10; ctx.beginPath(); ctx.arc(x, yy, r, 0, 7); ctx.fill(); }); ctx.globalAlpha = 1; }
+  // planets in space
+  if (m > 225) {
+    const py = sy(10400) * .5 + H * .25;
+    ctx.globalAlpha = clamp((m - 225) / 30, 0, 1);
+    ctx.fillStyle = "#ff9ccc"; ctx.beginPath(); ctx.arc(110, py, 46, 0, 7); ctx.fill();
+    ctx.strokeStyle = "#ffe36e"; ctx.lineWidth = 6; ctx.beginPath(); ctx.ellipse(110, py, 74, 16, -.3, 0, 7); ctx.stroke();
+    ctx.fillStyle = "#8fe3ff"; ctx.beginPath(); ctx.arc(390, py - 150, 26, 0, 7); ctx.fill();
+    ctx.fillStyle = "#ffd23f"; ctx.beginPath(); ctx.arc(330, py + 210, 14, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  // rainbow + clouds in the sky levels
+  if (m > 45 && m < 215) {
+    const a = clamp(Math.min((m - 45) / 20, (215 - m) / 20), 0, 1);
+    ctx.globalAlpha = a * .55; ctx.lineWidth = 12;
+    ["#ff5f6d", "#ff9f40", "#ffd23f", "#4cd964", "#3fa9ff", "#9b6bff"].forEach((c, i) => { ctx.strokeStyle = c; ctx.beginPath(); ctx.arc(W / 2, H * .9 + ((camY * .1) % 40), 300 - i * 12, Math.PI, 0); ctx.stroke(); });
+    ctx.globalAlpha = a * .8;
+    cloudsBg.forEach(([x, k, s]) => { const yy = ((k - camY * .35) % (H + 300) + H + 300) % (H + 300) - 150; puff(ctx, (x + t * 8 * s) % (W + 120) - 60, yy, s, "#ffffff"); });
+    ctx.globalAlpha = 1;
+  }
+  // giant tree trunk for level 1
+  const treeTop = sy(60 * PX_M + 80);
+  if (treeTop < H + 40) {
+    const tx = W / 2 - 120, tw = 240;
+    ctx.fillStyle = "#b0703f"; ctx.fillRect(tx, Math.max(treeTop, -10), tw, H + 20);
+    ctx.fillStyle = "#9a5f33";
+    for (let i = 0; i < 9; i++) { const lx = tx + 16 + i * 26; ctx.fillRect(lx, Math.max(treeTop, -10), 6, H + 20); }
+    ctx.fillStyle = "#c7854f"; ctx.fillRect(tx + tw - 30, Math.max(treeTop, -10), 14, H + 20);
+    // knots
+    for (let k = 0; k < 12; k++) { const ky = sy(k * 260 + 120); if (ky > -40 && ky < H + 40 && ky > treeTop) { ctx.fillStyle = "#8a5129"; ctx.beginPath(); ctx.ellipse(tx + 60 + (k % 3) * 60, ky, 16, 22, 0, 0, 7); ctx.fill(); } }
+    // vines
+    ctx.strokeStyle = "#47b06a"; ctx.lineWidth = 5;
+    for (let v = 0; v < 3; v++) { ctx.beginPath(); for (let yy = Math.max(treeTop, 0); yy < H; yy += 12) ctx.lineTo(tx + 30 + v * 80 + Math.sin((yy + camY) / 40 + v) * 12, yy); ctx.stroke(); }
+    // side branches and foliage
+    for (let k = 0; k < 10; k++) {
+      const by = sy(k * 300 + 200); if (by < treeTop || by < -120 || by > H + 120) continue;
+      const left = k % 2 === 0;
+      ctx.fillStyle = "#9a5f33"; ctx.fillRect(left ? 0 : tx + tw, by - 10, left ? tx : W - tx - tw, 20);
+      ctx.fillStyle = "#36b56a"; ctx.beginPath(); const fxx = left ? 30 : W - 30; ctx.arc(fxx, by - 20, 60, 0, 7); ctx.arc(fxx + (left ? 40 : -40), by - 50, 46, 0, 7); ctx.fill();
+    }
+    // canopy at the top
+    ctx.fillStyle = "#2fbf71"; ctx.beginPath(); ctx.arc(W / 2, treeTop + 20, 170, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = "#47d16b"; ctx.beginPath(); ctx.arc(W / 2 - 80, treeTop - 20, 90, 0, 7); ctx.arc(W / 2 + 90, treeTop - 10, 80, 0, 7); ctx.fill();
+  }
+  // ground
+  const gy = sy(0);
+  if (gy < H + 10) { ctx.fillStyle = "#5ee36a"; ctx.fillRect(0, gy, W, H); ctx.fillStyle = "#8af58f"; ctx.fillRect(0, gy, W, 10); }
+  // 50 m markers
+  ctx.setLineDash([6, 8]); ctx.strokeStyle = "#ffffffaa"; ctx.lineWidth = 2; ctx.font = "700 13px Fredoka, system-ui"; ctx.textAlign = "left";
+  for (let mm = 50; mm <= GOAL; mm += 50) {
+    const yy = sy(mm * PX_M); if (yy < -20 || yy > H + 20) continue;
+    ctx.beginPath(); ctx.moveTo(40, yy); ctx.lineTo(W - 34, yy); ctx.stroke();
+    ctx.fillStyle = "#2d2a5acc"; rr(ctx, 4, yy - 11, 42, 22, 11); ctx.fill(); ctx.fillStyle = "#fff"; ctx.fillText(mm === GOAL ? "🏁" : `${mm} m`, 9, yy + 5);
+  }
+  ctx.setLineDash([]);
+}
+function drawPlat(p) {
+  const y = sy(p.y); if (y < -30 || y > H + 30) return;
+  if (p.ground) return;
+  const x = p.x, w = p.w;
+  if (p.L === 0) {        // leafy branch
+    ctx.fillStyle = "#2a9d55"; rr(ctx, x, y - 4, w, 22, 11); ctx.fill();
+    ctx.fillStyle = "#4fd36e"; rr(ctx, x, y - 8, w, 16, 8); ctx.fill();
+    ctx.fillStyle = "#7ff08a"; for (let k = 8; k < w - 8; k += 18) { ctx.beginPath(); ctx.ellipse(x + k, y - 7, 8, 4, 0, 0, 7); ctx.fill(); }
+    ctx.strokeStyle = "#2a9d55"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + w * .3, y + 18); ctx.quadraticCurveTo(x + w * .3 - 6, y + 34, x + w * .3 + 4, y + 44); ctx.stroke();
+  } else if (p.L <= 2) {  // fluffy cloud
+    ctx.fillStyle = "#ffffff"; ctx.beginPath();
+    for (let k = 0; k <= w; k += 22) ctx.arc(x + k, y + 2 + (k / 22 % 2) * 3, 14, 0, 7);
+    ctx.fill(); rr(ctx, x - 6, y - 4, w + 12, 18, 9); ctx.fill();
+    ctx.fillStyle = p.L === 1 ? "#ffd9ec" : "#d6efff"; rr(ctx, x - 4, y + 8, w + 8, 8, 4); ctx.fill();
+  } else if (p.L === 3) { // sunset floating island
+    ctx.fillStyle = "#9c6bff"; ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x + w, y + 6); ctx.lineTo(x + w / 2 + 10, y + 34); ctx.lineTo(x + w / 2 - 14, y + 30); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#ffb15c"; rr(ctx, x, y - 6, w, 14, 7); ctx.fill();
+  } else {                // space pad
+    ctx.fillStyle = "#6b5cff"; rr(ctx, x, y - 6, w, 16, 8); ctx.fill();
+    ctx.fillStyle = "#b7f0ff"; for (let k = 10; k < w; k += 20) { ctx.globalAlpha = .5 + .5 * Math.sin(t * 6 + k); ctx.beginPath(); ctx.arc(x + k, y + 2, 3, 0, 7); ctx.fill(); }
+    ctx.globalAlpha = 1;
+  }
+  if (p.vx) { ctx.fillStyle = "#ffffffcc"; ctx.font = "700 12px system-ui"; ctx.textAlign = "center"; ctx.fillText("⇆", x + w / 2, y + 26); }
+}
+function drawPlayer() {
+  if (inv > 0 && (t * 12 | 0) % 2) return;
+  const x = P.x, y = sy(P.y);
+  ctx.fillStyle = "#0000002a"; if (P.ground) { ctx.beginPath(); ctx.ellipse(x, y + 2, 18, 5, 0, 0, 7); ctx.fill(); }
+  ctx.save(); ctx.translate(x, y);
+  if (!P.ground && P.jumps === 2) ctx.rotate(Math.sin(t * 20) * .12);
+  ctx.scale(P.face * .62, .62);
+  const sw = P.ground ? (Math.abs(P.vx) > 0 ? Math.sin(P.run) : 0) : .7;
+  drawAnimal(ctx, avatar, 0, 0, sw, 1, t);
+  ctx.restore();
+}
+function draw() {
+  ctx.setTransform(cv.width / W, 0, 0, cv.width / W, 0, 0);
+  drawBg();
+  plats.forEach(drawPlat);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  items.forEach((it, i) => { const y = sy(it.y) + Math.sin(t * 4 + i) * 4; if (y < -30 || y > H + 30) return; ctx.fillStyle = "#ffffff88"; ctx.beginPath(); ctx.arc(it.x, y, 17, 0, 7); ctx.fill(); ctx.font = "24px serif"; ctx.fillText(it.e, it.x, y + 1); });
+  hazards.forEach(h => { const y = sy(h.y); if (y < -30 || y > H + 30) return; ctx.font = "30px serif"; ctx.fillText(h.e, h.x, y); ctx.strokeStyle = "#ff3b5c"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(h.x, y, 20, 0, 7); ctx.stroke(); });
+  ctx.textBaseline = "alphabetic";
+  parts.forEach(p => { ctx.globalAlpha = Math.max(0, p.life * 2); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, sy(p.y), p.r, 0, 7); ctx.fill(); }); ctx.globalAlpha = 1;
+  // falling leaves in level 1
+  if (camY < 60 * PX_M) {
+    if (leaves.length < 14) leaves.push({x: Math.random() * W, y: -20, s: rnd(.6, 1.2), ph: Math.random() * 6});
+    ctx.fillStyle = "#56c96a";
+    leaves.forEach(l => { l.y += 40 * l.s * (1 / 60); l.x += Math.sin(t * 2 + l.ph) * .6; ctx.save(); ctx.translate(l.x, l.y); ctx.rotate(t * 2 + l.ph); ctx.beginPath(); ctx.ellipse(0, 0, 7 * l.s, 3.5 * l.s, 0, 0, 7); ctx.fill(); ctx.restore(); });
+    leaves = leaves.filter(l => l.y < H + 20);
+  }
+  drawPlayer();
+}
+
+// ---------------- menu: level cards + avatar picker ----------------
+LEVELS.forEach((L, i) => {
+  const d = document.createElement("div"); d.className = "lv";
+  d.innerHTML = `<b>${i + 1}</b><canvas width="160" height="80"></canvas><div>${L.name}<small>${L.from} – ${L.from + 60} m</small></div>`;
+  $("levels").appendChild(d);
+  const c = d.querySelector("canvas").getContext("2d"), [tp, bt] = skyAt(L.from + 30);
+  const g = c.createLinearGradient(0, 0, 0, 80); g.addColorStop(0, rgb(tp)); g.addColorStop(1, rgb(bt)); c.fillStyle = g; c.fillRect(0, 0, 160, 80);
+  if (i === 0) { c.fillStyle = "#b0703f"; c.fillRect(55, 0, 50, 80); c.fillStyle = "#4fd36e"; [[20, 60], [110, 40], [30, 25]].forEach(([x, y]) => { c.beginPath(); c.roundRect ? c.roundRect(x, y, 40, 10, 5) : c.rect(x, y, 40, 10); c.fill(); }); }
+  else if (i < 3) { puff(c, 20, 50, .6, "#fff"); puff(c, 90, 28, .5, "#fff"); }
+  else if (i === 3) { c.fillStyle = "#ffd23f"; c.beginPath(); c.arc(120, 60, 18, 0, 7); c.fill(); c.fillStyle = "#ffb15c"; c.fillRect(20, 50, 50, 8); }
+  else { c.fillStyle = "#fff"; for (let k = 0; k < 25; k++) c.fillRect(Math.random() * 160, Math.random() * 80, 2, 2); c.fillStyle = "#ff9ccc"; c.beginPath(); c.arc(110, 40, 16, 0, 7); c.fill(); c.font = "26px serif"; c.fillText("🚀", 20, 60); }
+  c.font = "22px serif"; c.textAlign = "right"; c.fillText(L.icon, 154, 24);
+});
+const avBtns = [...document.querySelectorAll(".av")];
+function selectAvatar(i) {
+  avatar = i; avBtns.forEach((b, k) => b.classList.toggle("sel", k === i));
+  try { localStorage.setItem("lariSihatAvatar", i); } catch (e) {}
+  const fc = $("progFace").getContext("2d"); fc.clearRect(0, 0, 60, 60); fc.save(); fc.translate(30, 84); fc.scale(.82, .82); drawAnimal(fc, i, 0, 0, 0, 1, 0); fc.restore();
+}
+avBtns.forEach((b, i) => b.onclick = () => { selectAvatar(i); beep(660 + i * 120, .1, "triangle", .07); });
+function drawPreviews(now) {
+  if (!$("startOv").classList.contains("show")) return;
+  const tt = now / 1000;
+  avBtns.forEach((b, i) => {
+    const c = b.querySelector("canvas").getContext("2d"); c.clearRect(0, 0, 160, 140);
+    const hop = i === avatar ? Math.abs(Math.sin(tt * 5)) * 10 : 0;
+    c.save(); c.translate(80, 128 - hop); c.scale(1.15, 1.15); drawAnimal(c, i, 0, 0, i === avatar ? Math.sin(tt * 10) : 0, 1, tt + i); c.restore();
+  });
+}
+
+// ---------------- loop ----------------
+let last = 0;
+function loop(now) {
+  const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
+  if (state === "play") update(dt);
+  else if (state === "count") {
+    const before = Math.ceil(countT); countT -= dt; const after = Math.ceil(countT);
+    if (after !== before && after > 0) { $("countNum").textContent = after; $("countNum").style.animation = "none"; void $("countNum").offsetWidth; $("countNum").style.animation = ""; sfx.tick(); }
+    if (countT <= 0) { show("count", false); sfx.go(); const f = afterCount; afterCount = null; f && f(); }
+    t += dt;
+  } else t += dt * (state === "menu" ? 1 : 0);
+  draw(); drawPreviews(now); drawFx(dt);
+  requestAnimationFrame(loop);
+}
+resize(); reset(); selectAvatar(avatar);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

@@ -6,6 +6,7 @@ Topik ESD: **Pemakanan sihat dan gaya hidup aktif**.
 **Main sekarang:**
 - Versi 2D: https://nikabdulaziz06-art.github.io
 - Versi 3D (mod melintang): https://nikabdulaziz06-art.github.io/3d.html
+- 🚀 Panjat ke Angkasa Sihat: https://nikabdulaziz06-art.github.io/panjat.html
 
 Versi 3D: 3 lorong (leret kiri/kanan atau ◀ ▶), leret ke atas / sentuh untuk lompat, 2 kali untuk lompat tinggi. Paling seronok dalam mod melintang di telefon. Three.js r128 (MIT) disimpan dalam `lib/`.
 
@@ -26,3 +27,6 @@ Versi 3D: 3 lorong (leret kiri/kanan atau ◀ ▶), leret ke atas / sentuh untuk
 
 ## Muzik
 Lagu latar ceria ialah gubahan asli yang disintesis terus dalam pelayar (`lib/music.js`, Web Audio API), jadi tiada fail audio atau isu hak cipta. Kekunci lagu bertukar setiap zon, muzik jadi perlahan semasa kuiz, dan ada fanfara bila menang. Butang 🎵 untuk hidup/matikan muzik, 🔊 untuk kesan bunyi.
+
+## 🚀 Panjat ke Angkasa Sihat
+Game memanjat (gaya menegak): masukkan nama murid, pilih avatar, kemudian lompat dari platform ke platform dari Pokok Gergasi hingga ke Angkasa Lepas (300 m, 5 level × 60 m). Soalan kesihatan muncul setiap 10 saat: betul = ⭐ +3, salah = -1 ❤️. Elak makanan ringan yang terapung. Kawalan: ❮ ❯ untuk bergerak, ketik = lompat, ketik 2× = lompat tinggi (papan kekunci: ← → dan SPACE).
